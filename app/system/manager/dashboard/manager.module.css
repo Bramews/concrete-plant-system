@@ -1,0 +1,230 @@
+.container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section {
+  margin-bottom: 3rem;
+  animation: fade-in-up 0.6s ease-out;
+}
+
+.sectionTitle {
+  margin-bottom: 1.5rem;
+  color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionTitle::before {
+  content: "";
+  display: block;
+  width: 4px;
+  height: 24px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  padding: 1.5rem;
+  text-align: right; /* Better for RTL */
+  background: var(--card); /* Fallback */
+  background: rgba(2, 6, 23, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.statValue {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-top: 0.5rem;
+  font-family: var(--font-cairo); /* Ensure numbers look good */
+}
+
+.statValueSuccess {
+  color: #10b981;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+.statValueDanger {
+  color: #ef4444;
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+.statValueWarning {
+  color: #eab308;
+  text-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+}
+
+.tableContainer {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(2, 6, 23, 0.4);
+}
+
+.tableCode {
+  font-weight: bold;
+  font-family: monospace;
+  color: var(--accent);
+}
+
+.locationInside {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.locationOutside {
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+.noData {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.analysisPanel {
+  padding: 2rem;
+  border: 1px solid var(--border);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border-radius: var(--radius);
+}
+
+.controlsContainer {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: flex-end; /* Align inputs and button */
+  margin-bottom: 2rem;
+}
+
+.controlGroup {
+  flex: 1;
+  min-width: 250px;
+}
+
+.label {
+  margin-bottom: 0.75rem;
+  display: block;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.select,
+.input {
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: var(--radius);
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.select:focus,
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: rgba(15, 23, 42, 0.9);
+  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.2);
+}
+
+.analyzeBtn {
+  height: 50px;
+  min-width: 140px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(236, 72, 153, 0.4);
+}
+
+.analyzeBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(236, 72, 153, 0.6);
+}
+
+.resultContainer {
+  animation: fade-in-up 0.4s ease;
+}
+
+.resultCard {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: var(--radius);
+  border: 1px solid;
+}
+
+.resultSuccess {
+  background: rgba(16, 185, 129, 0.05); /* Very subtle green tint */
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.resultFailure {
+  background: rgba(239, 68, 68, 0.05); /* Very subtle red tint */
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.resultTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.resultDetails {
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+  color: #cbd5e1;
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,564 @@
+Created At: 2026-07-07T11:05:42Z
+Completed At: 2026-07-07T11:05:42Z
+File Path: `file:///d:/concrete-plant-system/components/lab/ApproveOrderDialog.tsx`
+Total Lines: 556
+Total Bytes: 29635
+Showing lines 1 to 556
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: "use client";
+2: 
+3: import { useState, useMemo } from "react";
+4: import { processLabDecision } from "@/app/actions/lab";
+5: import { useRouter } from "next/navigation";
+6: import { toast } from "@/lib/toast";
+7: import { BidiText } from "@/components/ui/BidiText";
+8: 
+9: export default function ApproveOrderDialog({
+10:   order,
+11: }: {
+12:   order: any;
+13: }) {
+14:   const [isOpen, setIsOpen] = useState(false);
+15:   const [isRejectMode, setIsRejectMode] = useState(false);
+16:   const [isSubmitting, setIsSubmitting] = useState(false);
+17:   
+18:   // Engineering State
+19:   const [sandMoisture, setSandMoisture] = useState<number>(0);
+20:   const [gravelMoisture, setGravelMoisture] = useState<number>(0);
+21:   const [bahasMoisture, setBahasMoisture] = useState<number>(0);
+22:   const [eta, setEta] = useState<string>("");
+23:   const [details, setDetails] = useState("");
+24:   const [admixturePctAdjustment, setAdmixturePctAdjustment] = useState<number>(0);
+25: 
+26:   const router = useRouter();
+27: 
+28:   // خريطة ترجمة المواد إلى اللغة العربية لمنع الإنجليزية بالكامل
+29:   const MATERIAL_TRANSLATIONS: Record<string, string> = {
+30:     cement: "الأسمنت",
+31:     microsilica: "ميكروسيليكا",
+32:     filler: "فيلر",
+33:     ggbfs: "خبث الأفران (GGBFS)",
+34:     flyash: "الرماد المتطاير",
+35:     sand: "الرمل المغسول",
+36:     naturalsand: "الرمل الطبيعي",
+37:     ca10mm: "حصى 10 ملم (CA10)",
+38:     ca20mm: "حصى 20 ملم (CA20)",
+39:     water: "الماء",
+40:     admixture: "المضاف الكيميائي",
+41:   };
+42: 
+43:   const translateMaterial = (name: string) => {
+44:     const normalized = (name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+45:     return MATERIAL_TRANSLATIONS[normalized] || name;
+46:   };
+47: 
+48:   // تصفية المواد التي كميتها أكبر من 0 فقط لتجنب عرض المواد غير المستخدمة
+49:   const components = (order?.mixDesign?.MixComponent || []).filter((c: any) => c.quantity > 0);
+50: 
+51:   // Calculate dynamic adjusted weights for all materials
+52:   const computedMaterials = useMemo(() => {
+53:     let bWater = 0;
+54:     let bSand = 0;
+55:     let bGravel = 0;
+56:     let bBahas = 0;
+57:     let totalAbsContribution = 0;
+58:     let totalCementitious = 0;
+59: 
+60:     components.forEach((c: any) => {
+61:       const name = c.materialName?.toLowerCase() || "";
+62:       const isBahas = name.includes("bahas") || name.includes("بحص") || name.includes("fine gravel") || name.includes("10") || name.includes("ca10");
+63:       const isSand = name.includes("sand") || name.includes("رمل");
+64:       const isGravel = (name.includes("gravel") || name.includes("حصى") || name.includes("aggregate") || name.includes("ركام") || name.includes("ca")) && !isBahas && !isSand;
+65:       const isCementitious = name.includes("cement") || name.includes("أسمنت") || name.includes("microsilica") || name.includes("flyash") || name.includes("ggbfs") || name.includes("filler");
+66: 
+67:       if (isCementitious) totalCementitious += c.quantity;
+68: 
+69:       if (name.includes("water") || name.includes("ماء")) bWater += c.quantity;
+70:       else if (isSand) {
+71:         bSand += c.quantity;
+72:         totalAbsContribution += (c.quantity * (c.absorption || 0)) / 100;
+73:       }
+74:       else if (isBahas) {
+75:         bBahas += c.quantity;
+76:         totalAbsContribution += (c.quantity * (c.absorption || 0)) / 100;
+77:       }
+78:       else if (isGravel) {
+79:         bGravel += c.quantity;
+80:         totalAbsContribution += (c.quantity * (c.absorption || 0)) / 100;
+81:       }
+82:     });
+83: 
+84:     const sandWaterContribution = bSand * (sandMoisture / 100);
+85:     const gravelWaterContribution = bGravel * (gravelMoisture / 100);
+86:     const bahasWaterContribution = bBahas * (bahasMoisture / 100);
+87: 
+88:     return components.map((c: any) => {
+89:       const name = c.materialName?.toLowerCase() || "";
+90:       
+91:       const isBahas = name.includes("bahas") || name.includes("بحص") || name.includes("fine gravel") || name.includes("10") || name.includes("ca10");
+92:       const isSand = name.includes("sand") || name.includes("رمل");
+93:       const isGravel = (name.includes("gravel") || name.includes("حصى") || name.includes("aggregate") || name.includes("ركام") || name.includes("ca")) && !isBahas && !isSand;
+94:       const isWater = name.includes("water") || name.includes("ماء");
+95:       const isAdmix = name.includes("admix") || name.includes("مضاف") || name.includes("chemical") || name.includes("كيميائ");
+96: 
+97:       let baseQty = c.quantity;
+98:       if (isWater) {
+99:         baseQty = c.quantity - totalAbsContribution;
+100:       }
+101: 
+102:       let adjusted = baseQty;
+103:       let change = 0;
+104:       let admixLiters = 0;
+105:       let admixChangeLiters = 0;
+106:       let admixAdjustedLiters = 0;
+107: 
+108:       if (isWater) {
+109:         let ratio = bWater > 0 ? c.quantity / bWater : 0;
+110:         change = -(sandWaterContribution + gravelWaterContribution + bahasWaterContribution) * ratio;
+111:         adjusted += change;
+112:       } else if (isSand) {
+113:         change = c.quantity * (sandMoisture / 100);
+114:         adjusted += change;
+115:       } else if (isBahas) {
+116:         change = c.quantity * (bahasMoisture / 100);
+117:         adjusted += change;
+118:       } else if (isGravel) {
+119:         change = c.quantity * (gravelMoisture / 100);
+120:         adjusted += change;
+121:       } else if (isAdmix) {
+122:         admixLiters = (totalCementitious * (baseQty / 100)) / (c.specificGravity || 1);
+123:         change = admixturePctAdjustment;
+124:         adjusted = baseQty + change;
+125:         admixAdjustedLiters = (totalCementitious * (adjusted / 100)) / (c.specificGravity || 1);
+126:         admixChangeLiters = admixAdjustedLiters - admixLiters;
+127:       }
+128: 
+129:       return {
+130:         ...c,
+131:         materialNameArabic: translateMaterial(c.materialName),
+132:         baseQty,
+133:         adjustedQuantity: adjusted,
+134:         change,
+135:         admixLiters,
+136:         admixChangeLiters,
+137:         admixAdjustedLiters,
+138:         isWater,
+139:         isSand,
+140:         isGravel: isGravel || isBahas, // display as aggregate category
+141:         isAdmix,
+142:       };
+143:     });
+144:   }, [components, sandMoisture, gravelMoisture, bahasMoisture, admixturePctAdjustment]);
+145: 
+146:   async function handleApprove() {
+147:     if (sandMoisture < 0 || gravelMoisture < 0 || bahasMoisture < 0) {
+148:       toast.error("لا يمكن أن تكون نسبة الرطوبة سالبة");
+149:       return;
+150:     }
+151:     
+152:     setIsSubmitting(true);
+153:     try {
+154:       const mixData = JSON.stringify({
+155:         sandMoisture,
+156:         gravelMoisture,
+157:         bahasMoisture,
+158:         eta,
+159:         admixturePctAdjustment,
+160:         materials: computedMaterials.map((c: any) => ({
+161:           id: c.id,
+162:           name: c.materialName,
+163:           base: c.baseQty,
+164:           adjusted: c.adjustedQuantity,
+165:           change: c.change,
+166:         })),
+167:       });
+168: 
+169:       await processLabDecision(order.id, "APPROVE", details, mixData);
+170:       setIsOpen(false);
+171:       router.refresh();
+172:       toast.success("تم اعتماد الخلطة وإرسالها للمعمل بنجاح");
+173:     } catch (e: unknown) {
+174:       const error = e as Error;
+175:       toast.error("فشل في الاعتماد: " + (error.message || "حدث خطأ غير معروف"));
+176:     } finally {
+177:       setIsSubmitting(false);
+178:     }
+179:   }
+180: 
+181:   async function handleReject() {
+182:     if (!details.trim()) {
+183:       toast.error("يرجى كتابة سبب الرفض أولاً");
+184:       return;
+185:     }
+186:     setIsSubmitting(true);
+187:     try {
+188:       await processLabDecision(order.id, "REJECT", details);
+189:       setIsOpen(false);
+190:       router.refresh();
+191:       toast.success("تم رفض الطلب بنجاح");
+192:     } catch (e: unknown) {
+193:       const error = e as Error;
+194:       toast.error("فشل في الرفض: " + (error.message || "حدث خطأ غير معروف"));
+195:     } finally {
+196:       setIsSubmitting(false);
+197:     }
+198:   }
+199: 
+200:   if (!isOpen) {
+201:     return (
+202:       <button
+203:         onClick={() => setIsOpen(true)}
+204:         className="btn btn-secondary px-2.5 py-1 text-sm font-bold shadow-sm transition-all hover:bg-indigo-500/20 hover:text-indigo-300"
+205:         title="مراجعة واعتماد الخلطة"
+206:       >
+207:         الضبط الهندسي
+208:       </button>
+209:     );
+210:   }
+211: 
+212:   return (
+213:     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-[1000] p-4 overflow-y-auto">
+214:       <div className="bg-slate-900 border border-slate-700/50 rounded-xl shadow-2xl max-w-5xl w-full my-auto flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+215:         <div className="flex justify-between items-center p-6 border-b border-slate-800">
+216:           <div>
+217:             <h3 className="text-xl font-bold text-white flex items-center gap-2">
+218:               <span className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+219:                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+220:               </span>
+221:               الضبط الهندسي للخلطة
+222:             </h3>
+223:             <span className="text-sm text-slate-400 mt-1 block">طلب رقم: {order.orderNumber}</span>
+224:           </div>
+225:           <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-lg transition-colors">
+226:             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+227:           </button>
+228:         </div>
+229: 
+230:         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+231:           {/* Info Section */}
+232:           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+233:             <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 shadow-sm col-span-1 md:col-span-1">
+234:               <span className="block text-xs text-slate-400 mb-1">المشروع / موقع الصب</span>
+235:               <span className="font-bold text-sm text-white block">
+236:                 {(() => {
+237:                   const loc = order.project?.location || "";
+238:                   const idx = loc.search(/\((GPS|FILE):|GPS:|FILE:/);
+239:                   const clean = idx !== -1 ? loc.substring(0, idx).trim() : loc.trim();
+240:                   return clean || order.project?.name || "غير محدد";
+241:                 })()}
+242:               </span>
+243:               {(() => {
+244:                 const loc = order.project?.location || "";
+245:                 let gpsCoords = "";
+246:                 const gpsIdx = loc.indexOf("GPS:");
+247:                 if (gpsIdx !== -1) {
+248:                   let gpsPart = loc.substring(gpsIdx + 4).trim();
+249:                   const fileIdx = gpsPart.search(/\(?FILE:/);
+250:                   if (fileIdx !== -1) {
+251:                     gpsPart = gpsPart.substring(0, fileIdx).trim();
+252:                   }
+253:                   gpsCoords = gpsPart.replace(/[)]+$/, "").trim();
+254:                 }
+255: 
+256:                 let fileUrl = "";
+257:                 const fileIdx = loc.indexOf("FILE:");
+258:                 if (fileIdx !== -1) {
+259:                   let filePart = loc.substring(fileIdx + 5).trim();
+260:                   const nextFileIdx = filePart.search(/\(?FILE:/);
+261:                   if (nextFileIdx !== -1) {
+262:                     filePart = filePart.substring(0, nextFileIdx).trim();
+263:                   }
+264:                   fileUrl = filePart.replace(/[)]+$/, "").trim();
+265:                 }
+266: 
+267:                 return (
+268:                   <div className="mt-1.5 space-y-1">
+269:                     {gpsCoords && (
+270:                       <span className="text-xs text-indigo-400 font-mono block">
+271:                         إحداثيات: <BidiText>{gpsCoords}</BidiText>
+272:                       </span>
+273:                     )}
+274:                     {fileUrl && (
+275:                       <a 
+276:                         href={fileUrl}
+277:                         target="_blank"
+278:                         rel="noreferrer"
+279:                         className="text-xs text-emerald-400 font-bold hover:underline block mt-1 flex items-center gap-1"
+280:                       >
+281:                         <svg className="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+282:                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+283:                         </svg>
+284:                         <span>تحميل خريطة الموقع</span>
+285:                       </a>
+286:                     )}
+287:                   </div>
+288:                 );
+289:               })()}
+290:             </div>
+291:             <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 shadow-sm">
+292:               <span className="block text-xs text-slate-400 mb-1">الكمية المطلوبة</span>
+293:               <span className="font-bold text-sm text-indigo-300">{order.originalQuantity} m³</span>
+294:             </div>
+295:             <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 shadow-sm">
+296:               <span className="block text-xs text-slate-400 mb-1">كود الخلطة</span>
+297:               <span className="font-bold text-sm text-white">{order.mixDesign?.code || "N/A"}</span>
+298:             </div>
+299:             <div className="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 shadow-sm">
+300:               <span className="block text-xs text-slate-400 mb-1">المقاومة</span>
+301:               <span className="font-bold text-sm text-white">{order.mixDesign?.strength || "N/A"} MPa</span>
+302:             </div>
+303:           </div>
+304: 
+305:           {!isRejectMode ? (
+306:             <>
+307:               {/* Engineering Controls */}
+308:               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+309:                 {/* Moisture Settings & Admixture Controls */}
+310:                 <div className="col-span-2 bg-slate-800/30 border border-indigo-500/20 rounded-xl p-5 shadow-sm">
+311:                   <h4 className="text-indigo-400 font-bold mb-4 text-sm flex items-center gap-2">
+312:                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+313:                     إعدادات الرطوبة وتعديل المضاف
+314:                   </h4>
+315:                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+316:                     <div className="space-y-1">
+317:                       <label className="text-xs text-slate-400 font-bold">رطوبة الرمل</label>
+318:                       <div className="relative">
+319:                         <input 
+320:                           type="number" 
+321:                           min="0" max="20" step="0.1" 
+322:                           value={sandMoisture || ""} 
+323:                           onChange={(e) => setSandMoisture(parseFloat(e.target.value) || 0)}
+324:                           className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 pl-8 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
+325:                           placeholder="0.0"
+326:                         />
+327:                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">%</span>
+328:                       </div>
+329:                     </div>
+330:                     
+331:                     <div className="space-y-1">
+332:                       <label className="text-xs text-slate-400 font-bold">رطوبة الحصى</label>
+333:                       <div className="relative">
+334:                         <input 
+335:                           type="number" 
+336:                           min="0" max="20" step="0.1" 
+337:                           value={gravelMoisture || ""} 
+338:                           onChange={(e) => setGravelMoisture(parseFloat(e.target.value) || 0)}
+339:                           className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 pl-8 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
+340:                           placeholder="0.0"
+341:                         />
+342:                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">%</span>
+343:                       </div>
+344:                     </div>
+345: 
+346:                     <div className="space-y-1">
+347:                       <label className="text-xs text-slate-400 font-bold">رطوبة البحص</label>
+348:                       <div className="relative">
+349:                         <input 
+350:                           type="number" 
+351:                           min="0" max="20" step="0.1" 
+352:                           value={bahasMoisture || ""} 
+353:                           onChange={(e) => setBahasMoisture(parseFloat(e.target.value) || 0)}
+354:                           className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 pl-8 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
+355:                           placeholder="0.0"
+356:                         />
+357:                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">%</span>
+358:                       </div>
+359:                     </div>
+360: 
+361:                     <div className="space-y-1">
+362:                       <label className="text-xs text-purple-400 font-bold">تعديل المضاف</label>
+363:                       <div className="relative">
+364:                         <input 
+365:                           type="number" 
+366:                           step="0.05" 
+367:                           value={admixturePctAdjustment || ""} 
+368:                           onChange={(e) => setAdmixturePctAdjustment(parseFloat(e.target.value) || 0)}
+369:                           className="w-full bg-slate-900 border border-purple-500/50 rounded-lg py-2 px-3 pl-8 text-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono"
+370:                           placeholder="0.0"
+371:                         />
+372:                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">±%</span>
+373:                       </div>
+374:                     </div>
+375:                   </div>
+376:                 </div>
+377: 
+378:                 {/* Logistics */}
+379:                 <div className="col-span-1 bg-slate-800/30 border border-emerald-500/20 rounded-xl p-5 shadow-sm">
+380:                   <h4 className="text-emerald-400 font-bold mb-4 text-sm flex items-center gap-2">
+381:                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+382:                     التشغيل واللوجستيات
+383:                   </h4>
+384:                   <div className="space-y-1">
+385:                     <label className="text-xs text-slate-400 font-bold">وقت وصول الخلاطة (ETA)</label>
+386:                     <input 
+387:                       type="time" 
+388:                       value={eta} 
+389:                       onChange={(e) => setEta(e.target.value)}
+390:                       className="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-mono"
+391:                     />
+392:                   </div>
+393:                 </div>
+394:               </div>
+395: 
+396:               {/* Dynamic Materials Table */}
+397:               <div className="bg-slate-900/50 rounded-xl border border-slate-700 overflow-hidden shadow-inner">
+398:                 <table className="w-full text-sm text-right">
+399:                   <thead className="bg-slate-800 border-b border-slate-700">
+400:                     <tr>
+401:                       <th className="p-4 font-bold text-slate-300 w-1/3">المادة</th>
+402:                       <th className="p-4 font-bold text-slate-300">الوزن التصميمي</th>
+403:                       <th className="p-4 font-bold text-indigo-300">الوزن المعتمد (بعد التعديل)</th>
+404:                       <th className="p-4 font-bold text-slate-300">التغيير</th>
+405:                     </tr>
+406:                   </thead>
+407:                   <tbody className="divide-y divide-slate-800">
+408:                     {computedMaterials.length === 0 ? (
+409:                       <tr>
+410:                         <td colSpan={4} className="p-8 text-center text-slate-500">
+411:                           لا توجد مواد مسجلة في تفاصيل الخلطة.
+412:                         </td>
+413:                       </tr>
+414:                     ) : (
+415:                       computedMaterials.map((c: any) => (
+416:                         <tr key={c.id} className="hover:bg-slate-800/30 transition-colors">
+417:                           <td className="p-4 flex items-center gap-2">
+418:                             {c.isWater ? <span className="w-2 h-2 rounded-full bg-cyan-400"></span> :
+419:                              c.isSand ? <span className="w-2 h-2 rounded-full bg-amber-400"></span> :
+420:                              c.isGravel ? <span className="w-2 h-2 rounded-full bg-slate-400"></span> :
+421:                              c.isAdmix ? <span className="w-2 h-2 rounded-full bg-purple-400"></span> :
+422:                              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>}
+423:                             <span className="font-medium text-slate-200">{c.materialNameArabic}</span>
+424:                           </td>
+425:                           <td className="p-4 text-slate-400 font-mono">
+426:                             {c.isAdmix ? (
+427:                               <>
+428:                                 {c.baseQty.toFixed(2)} %
+429:                                 <span className="text-[10px] text-slate-500 block">({c.admixLiters.toFixed(2)} L)</span>
+430:                               </>
+431:                             ) : (
+432:                               <>{c.baseQty.toFixed(1)} {c.unit}</>
+433:                             )}
+434:                           </td>
+435:                           <td className={`p-4 font-bold font-mono ${c.isWater ? 'text-cyan-400' : c.isSand ? 'text-amber-400' : c.isGravel ? 'text-slate-200' : c.isAdmix ? 'text-purple-400' : 'text-emerald-400'}`}>
+436:                             {c.isAdmix ? (
+437:                               <>
+438:                                 {c.adjustedQuantity.toFixed(2)} %
+439:                                 <span className="text-[10px] block opacity-50">({c.admixAdjustedLiters.toFixed(2)} L)</span>
+440:                               </>
+441:                             ) : (
+442:                               <>{c.adjustedQuantity.toFixed(1)} {c.unit}</>
+443:                             )}
+444:                           </td>
+445:                           <td className="p-4 font-mono" dir="ltr">
+446:                             {c.isAdmix ? (
+447:                               c.change === 0 ? (
+448:                                 <span className="text-slate-600">-</span>
+449:                               ) : c.change > 0 ? (
+450:                                 <span className="text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded text-xs flex flex-col items-center">
+451:                                   +{c.change.toFixed(2)}%
+452:                                   <span className="opacity-70">(+{c.admixChangeLiters.toFixed(2)}L)</span>
+453:                                 </span>
+454:                               ) : (
+455:                                 <span className="text-rose-400 bg-rose-400/10 px-2 py-0.5 rounded text-xs flex flex-col items-center">
+456:                                   {c.change.toFixed(2)}%
+457:                                   <span className="opacity-70">({c.admixChangeLiters.toFixed(2)}L)</span>
+458:                                 </span>
+459:                               )
+460:                             ) : (
+461:                               c.change === 0 ? (
+462:                                 <span className="text-slate-600">-</span>
+463:                               ) : c.change > 0 ? (
+464:                                 <span className="text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">+{(c.change).toFixed(1)}</span>
+465:                               ) : (
+466:                                 <span className="text-rose-400 bg-rose-400/10 px-2 py-0.5 rounded">{(c.change).toFixed(1)}</span>
+467:                               )
+468:                             )}
+469:                           </td>
+470:                         </tr>
+471:                       ))
+472:                     )}
+473:                   </tbody>
+474:                 </table>
+475:               </div>
+476:             </>
+477:           ) : (
+478:             <div className="bg-rose-950/30 border border-rose-500/30 rounded-xl p-8 text-center animate-in zoom-in-95 duration-200">
+479:               <div className="w-20 h-20 bg-rose-500/20 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+480:                 <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+481:               </div>
+482:               <h4 className="text-2xl font-bold text-rose-400 mb-3">تأكيد رفض الطلبية</h4>
+483:               <p className="text-slate-300 max-w-md mx-auto">أنت على وشك رفض هذه الطلبية بشكل نهائي وإعادتها لقسم المبيعات للتعديل أو الإلغاء. يرجى توضيح السبب بدقة في حقل الملاحظات.</p>
+484:             </div>
+485:           )}
+486: 
+487:           {/* Notes Section */}
+488:           <div className="space-y-2">
+489:             <label className="text-sm font-bold text-slate-300 flex items-center gap-2">
+490:               <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+491:               {isRejectMode ? "سبب الرفض (إجباري للمبيعات)" : "توصيات وملاحظات لمشغل المحطة (اختياري)"}
+492:             </label>
+493:             <textarea 
+494:               value={details}
+495:               onChange={(e) => setDetails(e.target.value)}
+496:               className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all min-h-[100px] shadow-inner"
+497:               placeholder={isRejectMode ? "اكتب سبب الرفض بوضوح ليتمكن المبيعات من فهم المشكلة..." : "مثال: يرجى إضافة الثلج لارتفاع درجة الحرارة، أو الالتزام بتوصيل سريع..."}
+498:             />
+499:           </div>
+500:         </div>
+501: 
+502:         {/* Action Buttons */}
+503:         <div className="p-6 border-t border-slate-800 flex flex-wrap gap-3 justify-end shrink-0 bg-slate-900/50 rounded-b-xl">
+504:           {!isRejectMode ? (
+505:             <>
+506:               <button
+507:                 disabled={isSubmitting}
+508:                 onClick={() => setIsOpen(false)}
+509:                 className="btn bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex-1 sm:flex-none font-bold"
+510:               >
+511:                 إلغاء الأمر
+512:               </button>
+513:               <button
+514:                 disabled={isSubmitting}
+515:                 onClick={() => setIsRejectMode(true)}
+516:                 className="btn bg-rose-500/10 text-rose-500 border border-rose-500/30 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all flex-1 sm:flex-none font-bold"
+517:               >
+518:                 رفض وإرجاع
+519:               </button>
+520:               <button
+521:                 disabled={isSubmitting}
+522:                 onClick={handleApprove}
+523:                 className="btn btn-primary flex-1 sm:flex-none min-w-[200px] font-bold shadow-lg shadow-indigo-500/20"
+524:               >
+525:                 {isSubmitting ? (
+526:                   <span className="flex items-center gap-2 justify-center">
+527:                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+528:                     جاري الاعتماد...
+529:                   </span>
+530:                 ) : "اعتماد الأوزان وإرسال"}
+531:               </button>
+532:             </>
+533:           ) : (
+534:             <>
+535:               <button
+536:                 disabled={isSubmitting}
+537:                 onClick={() => setIsRejectMode(false)}
+538:                 className="btn bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-all flex-1 sm:flex-none font-bold"
+539:               >
+540:                 تراجع
+541:               </button>
+542:               <button
+543:                 disabled={isSubmitting}
+544:                 onClick={handleReject}
+545:                 className="btn bg-rose-600 text-white hover:bg-rose-700 transition-all flex-1 sm:flex-none min-w-[200px] font-bold shadow-lg shadow-rose-600/20"
+546:               >
+547:                 {isSubmitting ? "جاري الرفض..." : "تأكيد الرفض النهائي"}
+548:               </button>
+549:             </>
+550:           )}
+551:         </div>
+552:       </div>
+553:     </div>
+554:   );
+555: }
+556: 
+The above content shows the entire, complete file contents of the requested file.

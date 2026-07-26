@@ -1,0 +1,53 @@
+.emptyState {
+  padding: 2rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.rejectionCard {
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid #ef4444;
+}
+
+.cardContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.materialName {
+  color: #ef4444;
+  margin-bottom: 0.5rem;
+}
+
+.comments {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
+.timestamp {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 0.5rem;
+}
+
+.actionsContainer {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.acknowledgeBtn {
+  background: #059669;
+  border-color: #059669;
+}
+
+.acknowledgedText {
+  color: #059669;
+  font-size: 0.9rem;
+}
+
+.pageTitle {
+  margin-bottom: 2rem;
+}

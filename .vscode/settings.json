@@ -1,0 +1,4 @@
+{
+  "microprofile.tools.execution.mode": "full",
+  "prisma.pinToPrisma6": true
+}

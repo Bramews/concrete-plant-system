@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "customerName": "شركة البنيان للإعمار",
+    "projectName": "مجمع نينوى السكني",
+    "value": 45000000,
+    "stage": "LEAD",
+    "phone": "07701234567"
+  },
+  {
+    "id": 2,
+    "customerName": "مكتب آشور الهندسي",
+    "projectName": "جسر الكحلاء الجديد",
+    "value": 120000000,
+    "stage": "CONTACTED",
+    "phone": "07801234567"
+  },
+  {
+    "id": 3,
+    "customerName": "شركة بابل العامة",
+    "projectName": "طريق الدورة السريع",
+    "value": 85000000,
+    "stage": "NEGOTIATING",
+    "phone": "07901234567"
+  },
+  {
+    "id": 4,
+    "customerName": "مجموعة حمورابي",
+    "projectName": "فندق السدير السياحي",
+    "value": 150000000,
+    "stage": "PROPOSAL",
+    "phone": "07501234567"
+  },
+  {
+    "id": 5,
+    "customerName": "وزارة الإعمار والإسكان",
+    "projectName": "مستشفى البصرة العام",
+    "value": 320000000,
+    "stage": "WON",
+    "phone": "07712345678"
+  }
+]

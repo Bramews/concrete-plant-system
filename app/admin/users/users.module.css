@@ -1,0 +1,223 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.actionGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.badgeLab {
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+  border-color: var(--primary-glow);
+}
+
+.btnSecondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.btnSm {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.btnDanger {
+  background: #ef4444;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btnDanger:hover {
+  background: #dc2626;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.btnDanger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #475569;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 500px;
+  max-height: 95vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.modalTitle {
+  margin-bottom: 1.5rem;
+}
+
+.formSection {
+  margin-bottom: 1rem;
+}
+
+.labelBlock {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 0.5rem;
+  color: #fff;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.formInput option {
+  background-color: #0f172a; /* Dark background */
+  color: #fff; /* White text */
+}
+
+.roleSection {
+  margin-bottom: 1.5rem;
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.auditSection {
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.auditTitle {
+  margin-bottom: 1rem;
+}
+
+.auditTable {
+  font-size: 0.85rem;
+}
+
+.auditBadge {
+  font-size: 0.7rem;
+}
+
+.auditDetails {
+  color: #94a3b8;
+}
+
+.auditTime {
+  white-space: nowrap;
+}
+
+.passwordInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordToggleBtn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 5;
+}
+
+[dir="rtl"] .passwordToggleBtn,
+.passwordToggleBtnAr {
+  right: auto;
+  left: 0.75rem;
+}
+
+.passwordToggleBtn:hover {
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+.iconSm {
+  width: 20px;
+  height: 20px;
+}
+
+.usernameCell {
+  font-weight: 700;
+  color: var(--primary);
+  font-family: var(--font-geist-mono);
+}
+
+.formInputAr {
+  padding-left: 3rem !important;
+  padding-right: 0.75rem !important;
+}
+
+.labelHint {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: normal;
+  margin-inline-start: 0.5rem;
+}
+
+.linkSectionWrap {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkboxInput {
+  width: auto !important;
+  cursor: pointer;
+}
+
+.checkboxLabel {
+  color: #fff;
+  cursor: pointer;
+}

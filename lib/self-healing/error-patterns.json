@@ -1,0 +1,38 @@
+[
+  {
+    "pattern": "NOT_AUTHENTICATED",
+    "title": "انتهت صلاحية الجلسة",
+    "description": "لقد انتهت صلاحية جلسة العمل الآمنة الخاصة بك أو تم تسجيل الخروج من جهاز آخر.",
+    "action": "REDIRECT",
+    "target": "/api/auth/session-cleanup",
+    "autoApply": true
+  },
+  {
+    "pattern": "Unique constraint failed",
+    "title": "البيانات مسجلة مسبقاً",
+    "description": "الحقل الذي تحاول إدخاله (مثل الاسم أو الكود أو البريد الإلكتروني) مسجل بالفعل في النظام لشركة أخرى أو لنفس الشركة.",
+    "action": "ALERT",
+    "autoApply": false
+  },
+  {
+    "pattern": "Record to update not found",
+    "title": "تعذر العثور على السجل",
+    "description": "قد يكون السجل الذي تحاول تعديله قد تم حذفه أو تعديله بواسطة مستخدم آخر في نفس الوقت.",
+    "action": "RELOAD",
+    "autoApply": false
+  },
+  {
+    "pattern": "Failed to fetch",
+    "title": "انقطاع الاتصال بالخادم",
+    "description": "تعذر الاتصال بخوادم النظام السحابية. تم تحويلك تلقائياً لنمط العمل دون اتصال (Offline Mode) لضمان عدم توقف العمل بالمحطة.",
+    "action": "OFFLINE",
+    "autoApply": true
+  },
+  {
+    "pattern": "database is locked",
+    "title": "قاعدة البيانات مشغولة حالياً",
+    "description": "قاعدة البيانات المحلية تقوم بمعالجة دفعات إنتاج مكثفة حالياً. سيقوم النظام بإعادة المحاولة تلقائياً خلال ثوانٍ معدودة.",
+    "action": "RETRY",
+    "autoApply": true
+  }
+]

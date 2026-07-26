@@ -1,0 +1,35 @@
+{
+  "name": "Concrete Plant System",
+  "short_name": "Concrete ERP",
+  "description": "Enterprise Resource Planning for Concrete Plants",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Laboratory",
+      "url": "/system/lab",
+      "icons": [{ "src": "/icons/lab.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Production",
+      "url": "/system/operator",
+      "icons": [{ "src": "/icons/production.png", "sizes": "96x96" }]
+    }
+  ]
+}

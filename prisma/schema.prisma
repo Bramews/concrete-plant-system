@@ -1,0 +1,1620 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated-client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db?connection_limit=10&socket_timeout=30000&busy_timeout=30000"
+}
+
+model AuditLog {
+  id            Int          @id @default(autoincrement())
+  userId        Int?
+  systemOwnerId Int?
+  companyId     Int?
+  action        String
+  role          String
+  entity        String
+  entityId      String
+  oldValue      String?
+  newValue      String?
+  ipAddress     String?
+  userAgent     String?
+  prevStatus    String?
+  newStatus     String?
+  details       String?
+  correlationId String?
+  requestId     String?
+  durationMs    Int?
+  reason        String?
+  policyVersion Int?
+  timestamp     DateTime     @default(now())
+  user          User?        @relation(fields: [userId], references: [id])
+  systemOwner   SystemOwner? @relation(fields: [systemOwnerId], references: [id])
+  company       Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([entity, entityId])
+  @@index([action])
+  @@index([userId])
+  @@index([companyId, timestamp])
+}
+
+model BackupRecord {
+  id            Int      @id @default(autoincrement())
+  filename      String
+  sizeBytes     Int
+  status        String
+  testStatus    String?
+  timestamp     DateTime @default(now())
+  type          String?
+  durationMs    Int?
+  encrypted     Boolean?
+  storage       String?
+  creator       String?
+  integrityHash String?
+}
+
+model Batch {
+  id             Int             @id @default(autoincrement())
+  orderId        Int
+  quantity       Float
+  actualMixData  String
+  createdAt      DateTime        @default(now())
+  companyId      Int?
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  deliveryTicket DeliveryTicket?
+
+  @@index([companyId])
+}
+
+model BehaviorLog {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  userId    Int?
+  action    String
+  details   String?
+  timestamp DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model BillingEvent {
+  id             Int          @id @default(autoincrement())
+  subscriptionId Int
+  eventType      String
+  status         String       @default("PENDING")
+  timestamp      DateTime     @default(now())
+  details        String?
+  reason         String?
+  decidedAt      DateTime?
+  decidedBy      Int?
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+}
+
+model ChangeRequest {
+  id           String    @id
+  title        String
+  description  String?
+  type         String
+  originalData String?
+  newData      String
+  status       String    @default("PENDING")
+  requesterId  Int?
+  approverId   Int?
+  reason       String?
+  appliedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  creatorName  String?
+  approverName String?
+  requester    User?     @relation("ChangeRequest_requesterIdToUser", fields: [requesterId], references: [id])
+  approver     User?     @relation("ChangeRequest_approverIdToUser", fields: [approverId], references: [id])
+}
+
+model Company {
+  id                    Int                    @id @default(autoincrement())
+  slug                  String                 @unique
+  name                  String
+  status                String                 @default("ACTIVE")
+  address               String?
+  phone                 String?
+  latitude              Float?
+  longitude             Float?
+  currency              String                 @default("IQD")
+  timezone              String                 @default("Asia/Baghdad")
+  language              String                 @default("ar")
+  units                 String                 @default("metric")
+  taxRules              String?
+  invoiceSettings       String?
+  numberingRules        String?
+  featureFlags          String?
+  isLocked              Boolean                @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime               @default(now())
+  suspensionLevel       String                 @default("NONE")
+  gracePeriodEndsAt     DateTime?
+  auditLogs             AuditLog[]
+  behaviorLogs          BehaviorLog[]
+  companyActivityLogs   CompanyActivityLog[]
+  branding              CompanyBranding?
+  features              CompanyFeature[]
+  settings              CompanySetting[]
+  customers             Customer[]
+  departments           Department[]
+  domains               Domain[]
+  equipment             Equipment[]
+  inventoryTransactions InventoryTransaction[]
+  invites               Invite[]
+  invoices              Invoice[]
+  labReportConfig       LabReportConfig?
+  labStandards          LabStandard[]
+  ledgerEntries         LedgerEntry[]
+  license               License?
+  localFileShares       LocalFileShare[]
+  materials             Material[]
+  memberships           Membership[]
+  mixDesigns            MixDesign[]
+  networkHubSetting     NetworkHubSetting?
+  operationalExpenses   OperationalExpense[]
+  orders                Order[]
+  plcSetting            PlcSetting?
+  payments              Payment[]
+  payrolls              Payroll[]
+  projects              Project[]
+  requests              Request[]
+  roles                 Role[]
+  sieveAnalyses         SieveAnalysis[]
+  sieveCategories       SieveCategory[]
+  spareParts            SparePart[]
+  subscription          Subscription?
+  systemAlerts          SystemAlert[]
+  tenantHealth          TenantHealth?
+  usageCounters         UsageCounter[]
+  users                 User[]
+  vehicles              Vehicle[]
+}
+
+model CompanyActivityLog {
+  id        String   @id
+  companyId Int
+  userId    Int?
+  type      String
+  severity  String
+  message   String
+  metadata  String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([companyId, type])
+}
+
+model CompanyBranding {
+  id                  Int      @id @default(autoincrement())
+  companyId           Int      @unique
+  logoUrl             String?
+  logoText            String?  @default("N")
+  systemName          String?  @default("Neon-Lab")
+  subtitle            String?
+  loginButton         String?  @default("تسجيل الدخول")
+  primaryColor        String?  @default("#6366f1")
+  secondaryColor      String?  @default("#a855f7")
+  accentColor         String?  @default("#22d3ee")
+  homeButtonShow      Boolean  @default(true)
+  homeButtonTextAr    String?  @default("الرئيسية")
+  homeButtonTextEn    String?  @default("HOME")
+  homeButtonSize      String?  @default("15px")
+  homeButtonWeight    String?  @default("font-extrabold")
+  homeButtonTracking  String?  @default("tracking-[0.3em]")
+  homeButtonColor     String?
+  homeButtonAnimation String?  @default("breath")
+  updatedAt           DateTime @updatedAt
+  company             Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model CompanyFeature {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  key       String
+  enabled   Boolean  @default(false)
+  tier      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  featureId String?
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  feature   Feature? @relation(fields: [featureId], references: [id], onDelete: Cascade)
+}
+
+model CompanySetting {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  key       String
+  value     String
+  locked    Boolean  @default(false)
+  lockType  String   @default("NONE")
+  updatedAt DateTime @updatedAt
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+}
+
+model ComplianceViolation {
+  id        Int      @id @default(autoincrement())
+  type      String
+  severity  String
+  details   String
+  userId    Int?
+  timestamp DateTime @default(now())
+  status    String   @default("OPEN")
+}
+
+model CubeTest {
+  id               Int          @id @default(autoincrement())
+  orderId          Int
+  sampleDate       DateTime
+  age              Int
+  kn               Float?
+  mpa              Float?
+  result           String?
+  status           String       @default("PENDING")
+  approvedById     Int?
+  labStandardId    String?
+  standardSnapshot String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  companyId        Int?
+  creatorName      String?
+  approverName     String?
+  order            Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  approvedBy       User?        @relation(fields: [approvedById], references: [id])
+  labStandard      LabStandard? @relation(fields: [labStandardId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([sampleDate])
+  @@index([status])
+  @@index([orderId])
+}
+
+model CuringPond {
+  id        Int      @id @default(autoincrement())
+  orderId   Int      @unique
+  cubeCount Int      @default(0)
+  updatedAt DateTime @updatedAt
+  companyId Int?
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+model Customer {
+  id        Int       @id @default(autoincrement())
+  companyId Int
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  orders    Order[]
+}
+
+model DeliveryTicket {
+  id                 Int       @id @default(autoincrement())
+  ticketNumber       String    @unique
+  orderId            Int
+  batchId            Int       @unique
+  truckNumber        String
+  driverName         String
+  status             String
+  cubesCount         Int       @default(0)
+  cumulativeQuantity Float
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  companyId          Int?
+  currentLat         Float?
+  currentLng         Float?
+  destinationLabel   String?
+  destinationLat     Float?
+  destinationLng     Float?
+  driverPhone        String?
+  externalTrackingId String?
+  lastLocationAt     DateTime?
+  trackingToken      String?   @unique
+  deliveryHash       String?   @unique
+  qrCode             String?
+  order              Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  batch              Batch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  invoice            Invoice?
+
+  @@index([companyId])
+}
+
+model Department {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  displayName String
+  isSystem    Boolean  @default(true)
+  companyId   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  roles       Role[]
+  users       User[]
+}
+
+model Domain {
+  id                      Int       @id @default(autoincrement())
+  domain                  String    @unique
+  companyId               Int
+  status                  String    @default("PENDING")
+  verified                Boolean   @default(false)
+  verificationToken       String?
+  verificationAttempts    Int       @default(0)
+  lastVerificationAttempt DateTime?
+  forceHttps              Boolean   @default(true)
+  ipRestriction           String?
+  geoRestriction          String?
+  deletedAt               DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  company                 Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model EmailLog {
+  id        Int      @id @default(autoincrement())
+  to        String
+  subject   String
+  body      String
+  status    String
+  timestamp DateTime @default(now())
+}
+
+model Feature {
+  id             String           @id
+  description    String?
+  globalEnabled  Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  CompanyFeature CompanyFeature[]
+  PlanFeature    PlanFeature[]
+}
+
+model IdempotencyRecord {
+  id        String   @id
+  response  String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+model ImpersonationSession {
+  id            String      @id
+  systemOwnerId Int
+  targetUserId  Int
+  startedAt     DateTime    @default(now())
+  endedAt       DateTime?
+  reason        String?
+  systemOwner   SystemOwner @relation(fields: [systemOwnerId], references: [id])
+  user          User        @relation(fields: [targetUserId], references: [id], onDelete: Cascade)
+}
+
+model IncomingShipment {
+  id               Int      @id @default(autoincrement())
+  materialType     String
+  quantity         Float
+  source           String
+  recordedByUserId Int?
+  creatorName      String?
+  recordedAt       DateTime @default(now())
+  user             User?    @relation(fields: [recordedByUserId], references: [id])
+}
+
+model InventoryTransaction {
+  id         Int      @id @default(autoincrement())
+  companyId  Int
+  materialId Int
+  type       String
+  quantity   Float
+  reference  String?
+  timestamp  DateTime @default(now())
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  material   Material @relation(fields: [materialId], references: [id])
+
+  @@index([companyId])
+  @@index([materialId, timestamp])
+}
+
+model Invite {
+  id        String   @id
+  email     String
+  token     String   @unique
+  roleId    Int
+  companyId Int
+  status    String   @default("PENDING")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id])
+}
+
+model Invoice {
+  id             String          @id
+  companyId      Int
+  subscriptionId Int?
+  ticketId       Int?            @unique
+  orderId        Int?            @unique
+  type           String          @default("SUBSCRIPTION")
+  stripeId       String?         @unique
+  amount         Float
+  currency       String          @default("USD")
+  status         String
+  pdfUrl         String?
+  hostedUrl      String?
+  paidAt         DateTime?
+  creatorName    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  company        Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  subscription   Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  ticket         DeliveryTicket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  order          Order?          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([companyId])
+}
+
+model LabApproval {
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @unique
+  userId      Int?
+  creatorName String?
+  status      String   @default("APPROVED")
+  details     String?
+  mixData     String?
+  createdAt   DateTime @default(now())
+  companyId   Int?
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@index([companyId])
+}
+
+model LabReportConfig {
+  id            String   @id
+  companyId     Int      @unique
+  companyNameAr String?
+  companyNameEn String?
+  logoUrl       String?
+  phone         String?
+  email         String?
+  address       String?
+  website       String?
+  reportTitleAr String   @default("شهادة فحص مختبري")
+  reportTitleEn String   @default("Laboratory Test Certificate")
+  footerText    String?
+  showQrCode    Boolean  @default(true)
+  showSignature Boolean  @default(true)
+  signatureText String?
+  themeColor    String   @default("#000000")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model LabStandard {
+  id           String       @id
+  code         String       @unique
+  name         String
+  organization String
+  year         Int?
+  description  String?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  companyId    Int?
+  cubeTests    CubeTest[]
+  company      Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  orders       Order[]
+  testMethods  TestMethod[]
+}
+
+model LandingPageConfig {
+  id                Int      @id @default(autoincrement())
+  heroTitleAr       String
+  heroTitleEn       String
+  heroSubtitleAr    String
+  heroSubtitleEn    String
+  ctaTextAr         String
+  ctaTextEn         String
+  loginTextAr       String
+  loginTextEn       String
+  headerLogoTextAr  String   @default("كونكريت كور")
+  headerLogoTextEn  String   @default("Concrete Core")
+  headerLogoInitial String   @default("C")
+  backgroundStyle   String   @default("blob")
+  primaryColor      String   @default("indigo")
+  features          String   @default("[]")
+  updatedAt         DateTime @updatedAt
+}
+
+model LedgerEntry {
+  id          Int      @id @default(autoincrement())
+  companyId   Int
+  type        String
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model License {
+  id        Int       @id @default(autoincrement())
+  companyId Int       @unique
+  type      String
+  maxUsers  Int
+  modules   String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Material {
+  id                    Int                    @id @default(autoincrement())
+  companyId             Int
+  name                  String
+  code                  String?
+  unit                  String                 @default("kg")
+  stock                 Float                  @default(0)
+  status                String                 @default("ACTIVE")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  deletedAt             DateTime?
+  sieveCategoryId       String?
+  inventoryTransactions InventoryTransaction[]
+  company               Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sieveCategory         SieveCategory?         @relation(fields: [sieveCategoryId], references: [id], onDelete: Cascade)
+  materialRejections    MaterialRejection[]
+  mixComponents         MixComponent[]
+  qualityTests          QualityTest[]
+  sieveAnalyses         SieveAnalysis[]
+
+  @@unique([companyId, name])
+  @@index([createdAt])
+  @@index([status])
+  @@index([companyId])
+}
+
+model MaterialRejection {
+  id            Int      @id @default(autoincrement())
+  materialId    Int
+  labUserId     Int?
+  comments      String
+  status        String   @default("PENDING")
+  managerUserId Int?
+  creatorName   String?
+  managerName   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  companyId     Int?
+  material      Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  labUser       User?    @relation("MaterialRejection_labUserIdToUser", fields: [labUserId], references: [id])
+  manager       User?    @relation("MaterialRejection_managerUserIdToUser", fields: [managerUserId], references: [id])
+
+  @@index([companyId])
+  @@index([createdAt])
+  @@index([status])
+  @@index([materialId])
+}
+
+model Membership {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  companyId Int?
+  roleId    Int
+  status    String    @default("ACTIVE")
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  role      Role      @relation(fields: [roleId], references: [id])
+  company   Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+  @@index([companyId])
+  @@index([roleId])
+}
+
+model MixComponent {
+  id              Int       @id @default(autoincrement())
+  mixDesignId     Int
+  materialId      Int?
+  materialName    String
+  quantity        Float
+  unit            String    @default("kg")
+  specificGravity Float?
+  absorption      Float?
+  moistureContent Float?
+  finenessModulus Float?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  companyId       Int?
+  mixDesign       MixDesign @relation(fields: [mixDesignId], references: [id], onDelete: Cascade)
+  material        Material? @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([mixDesignId])
+}
+
+model MixDesign {
+  id               Int            @id @default(autoincrement())
+  companyId        Int
+  name             String
+  code             String
+  grade            String?
+  strengthClass    String?
+  status           String         @default("DRAFT")
+  details          String?
+  version          Int            @default(1)
+  isCurrent        Boolean        @default(true)
+  isFrozen         Boolean        @default(false)
+  parentMixId      Int?
+  changeNote       String?
+  method           String?
+  exposureClass    String?
+  maxAggregateSize Float?
+  targetWC         Float?
+  targetSlump      Float?
+  targetAir        Float?
+  targetDensity    Float?
+  calculations     String?
+  trialInfo        String?
+  labResults       String?
+  moistureData     String?
+  strengthResults  String?
+  trialVolumeData  String?
+  approvedById     Int?
+  approvedAt       DateTime?
+  creatorName      String?
+  approverName     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+  concretePrice    Float?
+  laborPrice       Float?
+  pumpPrice        Float?
+  priceComponents  String?
+  MixComponent     MixComponent[]
+  company          Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  parentMix        MixDesign?     @relation("MixDesignToMixDesign", fields: [parentMixId], references: [id])
+  revisions        MixDesign[]    @relation("MixDesignToMixDesign")
+  approvedBy       User?          @relation(fields: [approvedById], references: [id])
+  orders           Order[]
+
+  @@unique([companyId, code, version])
+  @@index([isCurrent])
+  @@index([status])
+  @@index([companyId])
+}
+
+model OperationalExpense {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  category  String
+  amount    Float
+  details   String?
+  reference String?
+  timestamp DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id                  Int              @id @default(autoincrement())
+  orderNumber         String
+  companyId           Int
+  customerId          Int?
+  projectId           Int?
+  mixDesignId         Int?
+  labStandardId       String?
+  status              String           @default("DRAFT")
+  volume              Float
+  date                DateTime
+  actualQuantity      Float            @default(0)
+  deletedAt           DateTime?
+  createdById         Int?
+  approvedById        Int?
+  creatorName         String?
+  approverName        String?
+  labApprovedAt       DateTime?
+  productionStartedAt DateTime?
+  dispatchedAt        DateTime?
+  accountingClosedAt  DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  notes               String?
+  batches             Batch[]
+  cubeTests           CubeTest[]
+  curingPond          CuringPond?
+  tickets             DeliveryTicket[]
+  invoices            Invoice?
+  labApproval         LabApproval?
+  company             Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer            Customer?        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  project             Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mixDesign           MixDesign?       @relation(fields: [mixDesignId], references: [id], onDelete: Cascade)
+  labStandard         LabStandard?     @relation(fields: [labStandardId], references: [id], onDelete: Cascade)
+  qualityTests        QualityTest[]
+
+  @@unique([companyId, orderNumber])
+  @@index([orderNumber])
+  @@index([date])
+  @@index([status])
+  @@index([companyId])
+  @@index([companyId, status, createdAt, id])
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  companyId     Int
+  amount        Float
+  currency      String   @default("USD")
+  status        String
+  provider      String?
+  transactionId String?
+  period        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([companyId])
+}
+
+model Payroll {
+  id          Int       @id @default(autoincrement())
+  companyId   Int
+  userId      Int?
+  amount      Float
+  month       String
+  status      String    @default("PENDING")
+  paidAt      DateTime?
+  creatorName String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id])
+}
+
+model Permission {
+  id             String           @id
+  resource       String
+  action         String
+  description    String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  RolePermission RolePermission[]
+
+  @@unique([resource, action])
+}
+
+model Plan {
+  id           Int            @id @default(autoincrement())
+  key          String         @unique
+  name         String
+  description  String?
+  maxUsers     Int
+  maxStorage   Int
+  maxOrders    Int
+  maxProjects  Int
+  features     String
+  price        Float          @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  PlanFeature  PlanFeature[]
+  Subscription Subscription[]
+}
+
+model PlanFeature {
+  planId    Int
+  featureId String
+  limit     Int?
+  feature   Feature @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  plan      Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@id([planId, featureId])
+}
+
+model Project {
+  id        Int       @id @default(autoincrement())
+  companyId Int
+  name      String
+  location  String?
+  status    String    @default("ACTIVE")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  orders    Order[]
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model QualityTest {
+  id           String     @id
+  orderId      Int?
+  materialId   Int?
+  methodId     String
+  testedById   Int?
+  testedAt     DateTime   @default(now())
+  value        Float?
+  readings     String?
+  result       String
+  notes        String?
+  approvedById Int?
+  creatorName  String?
+  approverName String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  companyId    Int?
+  order        Order?     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  material     Material?  @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  testMethod   TestMethod @relation(fields: [methodId], references: [id], onDelete: Cascade)
+  testedBy     User?      @relation("QualityTest_testedByIdToUser", fields: [testedById], references: [id])
+  approvedBy   User?      @relation("QualityTest_approvedByIdToUser", fields: [approvedById], references: [id])
+
+  @@index([companyId])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RegisterPageConfig {
+  id              Int      @id @default(autoincrement())
+  titleAr         String
+  titleEn         String
+  subtitleAr      String
+  subtitleEn      String
+  companyNameAr   String
+  companyNameEn   String
+  subdomainAr     String
+  subdomainEn     String
+  nameAr          String
+  nameEn          String
+  emailAr         String
+  emailEn         String
+  passwordAr      String
+  passwordEn      String
+  phoneAr         String
+  phoneEn         String
+  submitTextAr    String
+  submitTextEn    String
+  loginLinkTextAr String
+  loginLinkTextEn String
+  brandingNameAr  String
+  brandingNameEn  String
+  backgroundStyle String   @default("blob")
+  primaryColor    String   @default("indigo")
+  updatedAt       DateTime @updatedAt
+}
+
+model ResourceLock {
+  resourceId String   @id
+  lockedAt   DateTime @default(now())
+  expiresAt  DateTime
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String
+  displayName     String?
+  isSystem        Boolean          @default(false)
+  isSovereign     Boolean          @default(false)
+  description     String?
+  departmentId    Int?
+  companyId       Int?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  invites         Invite[]
+  memberships     Membership[]
+  department      Department?      @relation(fields: [departmentId], references: [id])
+  company         Company?         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@unique([companyId, name])
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Session {
+  id                        String       @id
+  userId                    Int
+  companyId                 Int?
+  tokenHash                 String       @unique
+  expiresAt                 DateTime
+  createdAt                 DateTime     @default(now())
+  isRevoked                 Boolean      @default(false)
+  impersonatorSystemOwnerId Int?
+  systemOwner               SystemOwner? @relation(fields: [impersonatorSystemOwnerId], references: [id])
+  user                      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
+}
+
+model SieveAnalysis {
+  id               Int       @id @default(autoincrement())
+  materialId       Int
+  testType         String?
+  readings         String
+  totalWeight      Float
+  moistureContent  Float?
+  clayContent      Float?
+  dryWeight        Float?
+  washWeight       Float?
+  source           String?
+  location         String?
+  supplier         String?
+  fieldNo          String?
+  projectName      String?
+  inspectorName    String?
+  labNo            String?
+  results          String?
+  finenessModulus  Float?
+  zone             String?
+  status           String    @default("PENDING")
+  approvedById     Int?
+  appliedStandards String?
+  sampleDate       DateTime?
+  testDate         DateTime?
+  reportDate       DateTime?
+  creatorName      String?
+  approverName     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  companyId        Int?
+  material         Material  @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  approvedBy       User?     @relation(fields: [approvedById], references: [id])
+  company          Company?  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([status])
+  @@index([materialId])
+}
+
+model SieveCategory {
+  id        String            @id
+  companyId Int
+  name      String
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  materials Material[]
+  company   Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sieves    SieveDefinition[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model SieveDefinition {
+  id         String        @id
+  categoryId String
+  size       String
+  minLimit   Float?
+  maxLimit   Float?
+  order      Int           @default(0)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  category   SieveCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+}
+
+model Subscription {
+  id                 Int            @id @default(autoincrement())
+  companyId          Int            @unique
+  planId             Int
+  stripeId           String?        @unique
+  status             String         @default("ACTIVE")
+  currentPeriodStart DateTime       @default(now())
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean        @default(false)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  billingEvents      BillingEvent[]
+  invoices           Invoice[]
+  company            Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plan               Plan           @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
+model SystemAlert {
+  id            Int      @id @default(autoincrement())
+  severity      String
+  message       String
+  correlationId String?
+  timestamp     DateTime @default(now())
+  resolved      Boolean  @default(false)
+  isRiskFlag    Boolean  @default(false)
+  category      String?
+  companyId     Int?
+  metric        String?
+  metadata      String?
+  company       Company? @relation(fields: [companyId], references: [id])
+}
+
+model SystemMetric {
+  id         Int      @id @default(autoincrement())
+  metricName String
+  value      Float
+  details    String?
+  timestamp  DateTime @default(now())
+}
+
+model SystemOwner {
+  id                   Int                    @id @default(autoincrement())
+  email                String                 @unique
+  password             String
+  name                 String
+  createdAt            DateTime               @default(now())
+  AuditLog             AuditLog[]
+  ImpersonationSession ImpersonationSession[]
+  Session              Session[]
+
+  @@index([email])
+}
+
+model SystemPolicy {
+  id        Int      @id @default(autoincrement())
+  key       String
+  version   Int      @default(1)
+  value     String
+  active    Boolean  @default(true)
+  category  String   @default("GENERAL")
+  isLocked  Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, version], name: "key_version")
+}
+
+model ModuleSeal {
+  moduleName String    @id
+  isSealed   Boolean   @default(false)
+  reason     String?
+  sealedBy   Int?
+  sealedAt   DateTime?
+  updatedAt  DateTime  @default(now()) @updatedAt
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  locked    Boolean  @default(false)
+  lockType  String   @default("NONE")
+  updatedAt DateTime @updatedAt
+}
+
+model TunnelInvitation {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  label     String
+  expiresAt DateTime
+  tunnelUrl String
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model SystemLedger {
+  id             Int      @id @default(autoincrement())
+  timestamp      DateTime @default(now())
+  tableName      String
+  recordId       String
+  actionType     String
+  oldValues      String?
+  newValues      String?
+  changedColumns String?
+  userId         Int?
+  sessionId      String?
+  sourceType     String   @default("UNKNOWN")
+  sourceMachine  String?
+  sourceIp       String?
+  checksum       String?
+  hashChain      String?
+  parentLedgerId Int?
+}
+
+model TenantHealth {
+  id        Int      @id @default(autoincrement())
+  companyId Int      @unique
+  status    String
+  lastCheck DateTime @default(now())
+  details   String?
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model TestMethod {
+  id           String        @id
+  standardId   String
+  name         String
+  code         String
+  unit         String?
+  description  String?
+  warningMin   Float?
+  warningMax   Float?
+  rejectMin    Float?
+  rejectMax    Float?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  qualityTests QualityTest[]
+  labStandard  LabStandard   @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@unique([standardId, code])
+}
+
+model TwoFactorSecret {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  secret      String
+  backupCodes String
+  enabled     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UsageCounter {
+  id        Int     @id @default(autoincrement())
+  companyId Int
+  metric    String
+  period    String
+  value     Int     @default(0)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, metric, period])
+  @@index([companyId])
+}
+
+model UsageEvent {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  metric    String
+  delta     Int
+  source    String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([companyId])
+}
+
+model User {
+  id                    Int                    @id @default(autoincrement())
+  username              String                 @unique
+  name                  String
+  email                 String                 @unique
+  password              String
+  status                String                 @default("ACTIVE")
+  phone                 String?
+  isGhost               Boolean                @default(false)
+  departmentId          Int?
+  companyId             Int?
+  deletedAt             DateTime?
+  expiresAt             DateTime?
+  ipRestriction         String?
+  canRegisterMaterials  Boolean                @default(false)
+  canCreateUsers        Boolean                @default(false)
+  createdById           Int?
+  createdAt             DateTime               @default(now())
+  auditLogs             AuditLog[]
+  requestedChanges      ChangeRequest[]        @relation("ChangeRequest_requesterIdToUser")
+  approvedChanges       ChangeRequest[]        @relation("ChangeRequest_approverIdToUser")
+  companyActivityLogs   CompanyActivityLog[]
+  cubeTests             CubeTest[]
+  impersonationSessions ImpersonationSession[]
+  incomingShipments     IncomingShipment[]
+  labApprovals          LabApproval[]
+  receivedSharedFiles   LocalFileShare[]       @relation("TargetUserFiles")
+  labRejections         MaterialRejection[]    @relation("MaterialRejection_labUserIdToUser")
+  managedRejections     MaterialRejection[]    @relation("MaterialRejection_managerUserIdToUser")
+  memberships           Membership[]
+  mixDesigns            MixDesign[]
+  passwordResetTokens   PasswordResetToken[]
+  payrolls              Payroll[]
+  testedQualityTests    QualityTest[]          @relation("QualityTest_testedByIdToUser")
+  approvedQualityTests  QualityTest[]          @relation("QualityTest_approvedByIdToUser")
+  refreshTokens         RefreshToken[]
+  requests              Request[]
+  sessions              Session[]
+  sieveAnalyses         SieveAnalysis[]
+  twoFactorSecret       TwoFactorSecret?
+  department            Department?            @relation(fields: [departmentId], references: [id])
+  company               Company?               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  creator               User?                  @relation("UserToUser", fields: [createdById], references: [id])
+  createdUsers          User[]                 @relation("UserToUser")
+  userDevices           UserDevice[]
+  userPreference        UserPreference?
+  userRoles             UserRole[]
+  userSettings          UserSetting[]
+
+  @@index([username])
+  @@index([email])
+  @@index([companyId])
+}
+
+model UserDevice {
+  id          String   @id
+  userId      Int
+  fingerprint String?
+  userAgent   String?
+  ipAddress   String?
+  lastActive  DateTime @default(now())
+  isTrusted   Boolean  @default(false)
+  revoked     Boolean  @default(false)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserPreference {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  theme     String   @default("industrial")
+  mode      String   @default("light")
+  language  String   @default("ar")
+  sidebar   String   @default("open")
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserRole {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  roleId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model UserSetting {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  key       String
+  value     String
+  locked    Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+}
+
+model Vehicle {
+  id               Int       @id @default(autoincrement())
+  companyId        Int
+  code             String
+  name             String?
+  type             String
+  status           String    @default("ACTIVE")
+  location         String    @default("OUTSIDE")
+  currentLat       Float?
+  currentLng       Float?
+  odometer         Float?    @default(0)
+  totalHours       Float?    @default(0)
+  nextServiceHours Float?    @default(500)
+  lastServiceDate  DateTime?
+  lastEntryAt      DateTime?
+  lastExitAt       DateTime?
+  details          String?
+  deletedAt        DateTime?
+  company          Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, code])
+  @@index([type])
+  @@index([status])
+  @@index([companyId])
+}
+
+model VerificationToken {
+  id         Int      @id @default(autoincrement())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([identifier, token])
+}
+
+model WebhookEvent {
+  id        String   @id
+  provider  String?
+  eventId   String?
+  type      String
+  payload   String
+  status    String   @default("PROCESSED")
+  createdAt DateTime @default(now())
+}
+
+model NetworkHubSetting {
+  id                  Int      @id @default(autoincrement())
+  companyId           Int      @unique
+  localAccessEnabled  Boolean  @default(true)
+  globalAccessEnabled Boolean  @default(false)
+  globalAccessUrl     String?
+  startHour           String   @default("06:00")
+  endHour             String   @default("18:00")
+  scheduleEnabled     Boolean  @default(false)
+  shiftSchedules      String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  company             Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model ConnectedDevice {
+  deviceUuid     String   @id
+  companyId      Int
+  name           String?
+  ipAddress      String?
+  userAgent      String?
+  connectionType String
+  deviceType     String
+  userId         Int?
+  isWhitelisted  Boolean  @default(false)
+  isBlacklisted  Boolean  @default(false)
+  isReadOnly     Boolean  @default(false)
+  lastActive     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model NetworkAccessLog {
+  id             Int      @id @default(autoincrement())
+  companyId      Int
+  username       String
+  ipAddress      String?
+  connectionType String   @default("LOCAL")
+  status         String
+  reason         String?
+  timestamp      DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model GuestLink {
+  token          String   @id
+  companyId      Int
+  expiresAt      DateTime
+  allowedOrderId Int?
+  allowedMixId   Int?
+  notes          String?
+  createdAt      DateTime @default(now())
+
+  @@index([companyId])
+}
+
+model LocalFileShare {
+  id           Int      @id @default(autoincrement())
+  companyId    Int
+  fileName     String
+  fileUrl      String
+  sizeBytes    Int
+  uploadedById Int?
+  creatorName  String?
+  visibility   String   @default("EVERYONE")
+  departmentId Int?
+  scope        String?
+  createdAt    DateTime @default(now())
+  uploadedBy   User?    @relation("TargetUserFiles", fields: [uploadedById], references: [id])
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model PrinterConfiguration {
+  id         Int      @id @default(autoincrement())
+  companyId  Int
+  name       String
+  ipAddress  String
+  port       Int      @default(9100)
+  department String
+  isEnabled  Boolean  @default(true)
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model PhysicalWebhook {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  name      String
+  url       String
+  eventType String
+  isEnabled Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model Request {
+  id          Int      @id @default(autoincrement())
+  companyId   Int
+  type        String
+  details     String
+  requesterId Int?
+  creatorName String?
+  status      String   @default("PENDING")
+  managerNote String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  requester   User?    @relation(fields: [requesterId], references: [id])
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([requesterId])
+}
+
+model Equipment {
+  id              Int              @id @default(autoincrement())
+  companyId       Int
+  name            String
+  type            String
+  status          String           @default("ACTIVE")
+  hoursRun        Float            @default(0)
+  lastMaintenance DateTime?
+  nextMaintenance DateTime?
+  serialNumber    String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  faultLogs              FaultLog[]
+  maintenanceLogs        MaintenanceLog[]
+  predictiveMaintenance  EquipmentMaintenance?
+
+  @@index([companyId])
+}
+
+model MaintenanceLog {
+  id          Int       @id @default(autoincrement())
+  equipmentId Int
+  description String
+  type        String
+  cost        Float     @default(0)
+  date        DateTime  @default(now())
+  technician  String?
+  createdAt   DateTime  @default(now())
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@index([equipmentId])
+}
+
+model FaultLog {
+  id          Int       @id @default(autoincrement())
+  companyId   Int
+  equipmentId Int
+  title       String
+  description String
+  severity    Int       @default(1)
+  reportedBy  String
+  reportedAt  DateTime  @default(now())
+  status      String    @default("PENDING")
+  resolvedAt  DateTime?
+  solution    String?
+  cost        Float     @default(0)
+  createdAt   DateTime  @default(now())
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([equipmentId])
+}
+
+model SparePart {
+  id            Int      @id @default(autoincrement())
+  companyId     Int
+  name          String
+  code          String?
+  quantity      Float    @default(0)
+  reorderPoint  Float    @default(0)
+  unit          String   @default("pcs")
+  price         Float    @default(0)
+  supplier      String?
+  supplierPhone String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+// جداول تتبع الأسطول والمواقع الجغرافية الجديدة
+model TrackingDevice {
+  id           String            @id @default(uuid())
+  deviceId     String            @unique
+  companyId    Int
+  name         String
+  vehicleType  String
+  sessions     TrackingSession[]
+  createdAt    DateTime          @default(now())
+
+  @@index([companyId])
+}
+
+model TrackingSession {
+  id         String             @id @default(uuid())
+  deviceId   String
+  device     TrackingDevice     @relation(fields: [deviceId], references: [deviceId], onDelete: Cascade)
+  status     String             @default("ACTIVE")
+  locations  LocationHistory[]
+  createdAt  DateTime           @default(now())
+}
+
+model LocationHistory {
+  id         String          @id @default(uuid())
+  sessionId  String
+  session    TrackingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  lat        Float
+  lng        Float
+  speed      Float?
+  heading    Float?
+  accuracy   Float?
+  createdAt  DateTime        @default(now())
+
+  @@index([sessionId])
+}
+
+model EquipmentMaintenance {
+  id                   Int       @id @default(autoincrement())
+  equipmentId          Int       @unique
+  batchCount           Int       @default(0)
+  maintenanceThreshold Int       @default(1000)
+  trackingUnit         String    @default("BATCHES") // BATCHES | KM | MILES | HOURS
+  lastMaintenanceDate  DateTime  @default(now())
+  nextMaintenanceDate  DateTime?
+  status               String    @default("HEALTHY") // HEALTHY | WARNING | CRITICAL | OVERDUE
+  equipment            Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+}
+
+model PlcSetting {
+  id               Int      @id @default(autoincrement())
+  companyId        Int      @unique
+  autoMode         Boolean  @default(true)
+  moistureOffset   Float    @default(0.0)
+  tolerancePercent Float    @default(2.0)
+  customButtons    String   @default("[]")
+  customSensors    String   @default("[]")
+  discoveredBrand  String?  @default("SIEMENS_PROFINET")
+  detectedIp       String?  @default("192.168.1.10")
+  detectedPort     Int?     @default(102)
+  activeProtocol   String?  @default("OPC_UA / PROFINET / MODBUS")
+  updatedAt        DateTime @updatedAt
+  company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
