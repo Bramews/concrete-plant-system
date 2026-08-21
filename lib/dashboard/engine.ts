@@ -168,9 +168,19 @@ export function getDashboardConfig(
             icon: "ArrowRight",
           },
           {
-            label: isAr ? "إدارة الفواتير" : "Invoices",
+            label: isAr ? "الفواتير والذمم" : "Invoices",
             href: "/system/accountant/invoices",
             icon: "FileText",
+          },
+          {
+            label: isAr ? "كشوفات العملاء" : "Customer Statements",
+            href: "/system/accountant/customers",
+            icon: "Users",
+          },
+          {
+            label: isAr ? "سندات القبض" : "Receipt Vouchers",
+            href: "/system/accountant/vouchers",
+            icon: "DollarSign",
           },
           {
             label: isAr ? "المصاريف التشغيلية" : "Expenses",
@@ -183,9 +193,29 @@ export function getDashboardConfig(
             icon: "Users",
           },
           {
+            label: isAr ? "حسابات وأجور السائقين" : "Driver Accounts",
+            href: "/system/accountant/drivers",
+            icon: "Truck",
+          },
+          {
+            label: isAr ? "إقفال الفترات المالية" : "Financial Periods",
+            href: "/system/accountant/periods",
+            icon: "Lock",
+          },
+          {
+            label: isAr ? "سجل الرقابة المالي" : "Financial Audit Trail",
+            href: "/system/accountant/audit",
+            icon: "ShieldCheck",
+          },
+          {
             label: isAr ? "التقارير المالية" : "Financial Reports",
             href: "/system/accountant/reports",
             icon: "BarChart2",
+          },
+          {
+            label: isAr ? "إعدادات العملات" : "Financial Settings",
+            href: "/system/accountant/settings",
+            icon: "Settings",
           },
           {
             label: isAr ? "مشاركة الملفات" : "File Share",
@@ -213,14 +243,9 @@ export function getDashboardConfig(
             icon: "ArrowRight",
           },
           {
-            label: isAr ? "طلبات الزبائن" : "Orders",
+            label: isAr ? "إدارة الطلبيات" : "Orders",
             href: "/system/sales/orders",
-            icon: "Briefcase",
-          },
-          {
-            label: isAr ? "العملاء" : "Customers",
-            href: "/system/sales/customers",
-            icon: "Users",
+            icon: "Package",
           },
           {
             label: isAr ? "المشاريع" : "Projects",
@@ -384,6 +409,11 @@ export function getDashboardConfig(
           icon: "Database",
         },
         {
+          label: isAr ? "مجلس الذكاء الاصطناعي السيادي" : "AI Super Council",
+          href: "/admin/ai",
+          icon: "Brain",
+        },
+        {
           label: isAr ? "السجل الزمني (آلة الزمن)" : "Time-Travel Ledger",
           href: "/admin/settings/ledger",
           icon: "Clock",
@@ -407,6 +437,16 @@ export function getDashboardConfig(
           icon: "FileText",
         },
         {
+          label: isAr ? "كشوفات العملاء" : "Customer Statements",
+          href: "/system/accountant/customers",
+          icon: "Users",
+        },
+        {
+          label: isAr ? "سندات القبض" : "Receipt Vouchers",
+          href: "/system/accountant/vouchers",
+          icon: "DollarSign",
+        },
+        {
           label: isAr ? "المصاريف التشغيلية" : "Expenses",
           href: "/system/accountant/expenses",
           icon: "TrendingDown",
@@ -417,9 +457,29 @@ export function getDashboardConfig(
           icon: "Users",
         },
         {
+          label: isAr ? "حسابات وأجور السائقين" : "Driver Accounts",
+          href: "/system/accountant/drivers",
+          icon: "Truck",
+        },
+        {
+          label: isAr ? "إقفال الفترات المالية" : "Financial Periods",
+          href: "/system/accountant/periods",
+          icon: "Lock",
+        },
+        {
+          label: isAr ? "سجل الرقابة المالي" : "Financial Audit Trail",
+          href: "/system/accountant/audit",
+          icon: "ShieldCheck",
+        },
+        {
           label: isAr ? "التقارير المالية" : "Financial Reports",
           href: "/system/accountant/reports",
           icon: "BarChart2",
+        },
+        {
+          label: isAr ? "إعدادات العملات" : "Financial Settings",
+          href: "/system/accountant/settings",
+          icon: "Settings",
         },
         {
           label: isAr ? "مشاركة الملفات" : "File Share",
