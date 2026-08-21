@@ -9,7 +9,7 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "check": "npm run lint && next build && npx prettier --check .",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "fix-rbac": "tsx fix-rbac-complete.ts",
     "backup": "node scripts/security-backup.mjs",
     "watch-backup": "node scripts/backup-watcher.mjs"
