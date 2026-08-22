@@ -1,4 +1,4 @@
-export const dictionary: Record<string, Record<string, unknown>> = {
+export const dictionary = {
   en: {
     api_errors: {
       unauthorized: "Unauthorized Access",
@@ -2932,4 +2932,4 @@ export const dictionary: Record<string, Record<string, unknown>> = {
 
 export type Dictionary = typeof dictionary;
 export type Locale = "en" | "ar";
-export type DictionaryType = Record<string, unknown>;
+export type DictionaryType = typeof dictionary.ar;
