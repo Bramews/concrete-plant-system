@@ -48,6 +48,7 @@ next-env.d.ts
 *.db-journal
 *.db-shm
 *.db-wal
+!prisma/dev.db
 
 
  # Security & Environment Files
@@ -65,7 +66,7 @@ next-env.d.ts
 *.db.bak*
 *.db.pre_*
 *.db.emergency_*
-prisma/dev.db*
+!prisma/dev.db
 dev.db.*
 
 # Binaries & Large Assets
