@@ -148,7 +148,7 @@ export function LogsViewer({
               </th>
               <th className="px-4 py-3">{dict.admin.logs.table.action}</th>
               <th className="px-4 py-3">{dict.admin.logs.table.user}</th>
-              <th className="px-4 py-3">{dict.admin.logs.table.context}</th>
+              <th className="px-4 py-3">{(dict.admin.logs.table as Record<string, string>).context || "السياق"}</th>
               <th className="px-4 py-3 text-start">
                 {dict.admin.logs.table.details}
               </th>
