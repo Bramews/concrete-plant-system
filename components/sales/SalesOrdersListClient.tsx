@@ -23,6 +23,7 @@ import { updateOrderStatus } from "@/app/actions/orders";
 import { submitOrderToLab, deleteOrder } from "@/app/actions/order";
 import { Trash2 } from "lucide-react";
 import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
+import { TransitTimerBadge } from "@/components/logistics/TransitTimerBadge";
 
 interface SalesOrdersListClientProps {
   initialOrders: any[];
@@ -385,11 +386,19 @@ export default function SalesOrdersListClient({
 
                     {/* Status Badge */}
                     <td className="text-center">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase ${statusBadge}`}
-                      >
-                        {statusText}
-                      </span>
+                      <div className="flex flex-col items-center gap-1">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[9px] font-black uppercase ${statusBadge}`}
+                        >
+                          {statusText}
+                        </span>
+                        {isDispatched && (
+                          <TransitTimerBadge
+                            dispatchedAt={order.dispatchedAt || order.updatedAt || order.createdAt}
+                            status={order.status}
+                          />
+                        )}
+                      </div>
                     </td>
 
                     {/* Operations */}

@@ -14,7 +14,7 @@ import {
   Plus,
   AlertTriangle,
   Activity,
-  UserCheck,
+  UserPlus,
   Settings,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -699,7 +699,7 @@ export function TunnelTab({ dict, settings, onUpdate }: TunnelTabProps) {
           className="w-full flex items-center justify-between text-white font-bold"
         >
           <span className="flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-emerald-400" />
+            <UserPlus className="w-4 h-4 text-emerald-400" />
             نظام الدعوات المؤقتة للمقاولين ({invitations.length})
           </span>
           <span className="text-xs text-blue-400">

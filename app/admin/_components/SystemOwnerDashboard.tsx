@@ -49,9 +49,13 @@ export function SystemOwnerDashboard({
   dict,
   lang = "ar",
 }: DashboardProps) {
-  const totalCompanies = data.kpis.activeTenants || 0;
+  const companyList = ((data.companies || data.activeTenants || []) as any[]);
+  const activeCountFromList = companyList.filter(
+    (c: any) => c.status === "ACTIVE" || !c.status,
+  ).length;
+  const totalCompanies = data.kpis.activeTenants || companyList.length || 0;
   const activeCompanies =
-    data.companies?.filter((c: any) => c.status === "ACTIVE").length || 0;
+    activeCountFromList > 0 ? activeCountFromList : totalCompanies;
   const alertsCount = data.kpis.systemAlerts || 0;
   const storage = data.kpis.storage || "0 GB";
 
@@ -77,13 +81,13 @@ export function SystemOwnerDashboard({
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const companiesBefore =
-    data.companies?.filter(
+    companyList.filter(
       (c: any) => c.createdAt && new Date(c.createdAt) < thirtyDaysAgo,
-    ) || [];
+    );
   const companiesNew =
-    data.companies?.filter(
+    companyList.filter(
       (c: any) => c.createdAt && new Date(c.createdAt) >= thirtyDaysAgo,
-    ) || [];
+    );
   const companiesChange =
     companiesBefore.length > 0
       ? Math.round((companiesNew.length / companiesBefore.length) * 100)
@@ -199,6 +203,7 @@ export function SystemOwnerDashboard({
             icon="Factory"
             gradient="kpi-gradient-1"
             iconColor="text-indigo-400"
+            href="/admin/companies"
           />
           <KPICard
             title={dict.dashboard?.kpi?.active || "Active"}
@@ -207,6 +212,7 @@ export function SystemOwnerDashboard({
             icon="CheckCircle"
             gradient="kpi-gradient-2"
             iconColor="text-emerald-400"
+            href="/admin/companies"
           />
           <KPICard
             title={dict.dashboard?.kpi?.system_alerts || "System Alerts"}
@@ -215,6 +221,7 @@ export function SystemOwnerDashboard({
             icon="AlertTriangle"
             gradient="kpi-gradient-3"
             iconColor="text-amber-400"
+            href="/admin/alerts"
           />
           <KPICard
             title={dict.dashboard?.health?.storage || "Storage"}
@@ -222,6 +229,7 @@ export function SystemOwnerDashboard({
             icon="Box"
             gradient="kpi-gradient-4"
             iconColor="text-rose-400"
+            href="/admin/settings/backup"
           />
         </div>
 

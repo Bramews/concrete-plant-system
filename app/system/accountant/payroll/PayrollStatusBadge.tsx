@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { processPayroll } from "@/app/actions/finance";
 import { toast } from "sonner";
+import { Check, Clock, Loader2 } from "lucide-react";
 
 interface Props {
   payrollId: number;
@@ -19,46 +20,49 @@ export function PayrollStatusBadge({
 }: Props) {
   const [status, setStatus] = useState(initialStatus);
   const [loading, setLoading] = useState(false);
+  const isRtl = lang === "ar";
 
-  const toggleStatus = async () => {
+  const handleProcess = async () => {
     if (loading || status === "PAID") return;
     setLoading(true);
 
     try {
       await processPayroll(companyId, payrollId);
       setStatus("PAID");
-      toast.success("تم صرف الراتب بنجاح");
+      toast.success(isRtl ? "تم صرف مستحقات الراتب بنجاح" : "Payroll processed successfully");
     } catch {
-      toast.error("فشل تنفيذ العملية");
+      toast.error(isRtl ? "فشل تنفيذ عملية الصرف" : "Failed to process payroll");
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusConfig = () => {
-    if (status === "PAID") {
-      return {
-        label: "تم الصرف",
-        className:
-          "bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]",
-      };
-    }
-    return {
-      label: "بانتظار الصرف",
-      className:
-        "bg-indigo-500/10 text-indigo-500 border-indigo-500/20 shadow-[0_0_10px_rgba(99,102,241,0.1)] hover:scale-105 active:scale-95",
-    };
-  };
-
-  const config = getStatusConfig();
+  if (status === "PAID") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/5">
+        <Check className="w-3 h-3 stroke-[3]" />
+        <span>{isRtl ? "تم الصرف" : "Paid"}</span>
+      </span>
+    );
+  }
 
   return (
     <button
-      onClick={toggleStatus}
-      disabled={loading || status === "PAID"}
-      className={`px-3 py-1 rounded-full text-[9px] font-black border transition-all disabled:opacity-50 ${config.className}`}
+      type="button"
+      onClick={handleProcess}
+      disabled={loading}
+      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black border bg-amber-500/10 text-amber-400 border-amber-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+      title={isRtl ? "اضغط للصرف الفوري" : "Click to process payment"}
     >
-      {loading ? "..." : config.label}
+      {loading ? (
+        <Loader2 className="w-3 h-3 animate-spin" />
+      ) : (
+        <>
+          <Clock className="w-3 h-3" />
+          <span>{isRtl ? "بانتظار الصرف" : "Pending"}</span>
+        </>
+      )}
     </button>
   );
 }
+

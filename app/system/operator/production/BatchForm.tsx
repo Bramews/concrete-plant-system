@@ -1,5 +1,5 @@
 "use client";
-import { completeOrderDelivery } from "@/app/actions/production";
+
 
 import { useState, useMemo } from "react";
 import { createBatch } from "@/app/actions/production";
@@ -17,8 +17,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Locale, getDictionary } from "@/lib/dictionary";
-import "../../system-modules.css";
 import { BidiText } from "@/components/ui/BidiText";
+import { UnifiedSiloDisplay } from "@/components/operator/UnifiedSiloDisplay";
 
 interface OrderWithDetails extends Order {
   customer?: Customer | null;
@@ -33,43 +33,7 @@ interface BatchFormProps {
   lang: Locale;
 }
 
-function Silo({ material }: { material: Material }) {
-  const maxStock = 50000;
-  const percentage = Math.min((material.stock / maxStock) * 100, 100);
-  const color =
-    percentage < 20
-      ? "bg-rose-500"
-      : percentage < 40
-        ? "bg-yellow-500"
-        : "bg-emerald-500";
 
-  return (
-    <div className="flex flex-col items-center gap-2 group">
-      <div className="w-16 h-40 bg-white/5 border border-white/10 rounded-t-3xl rounded-b-lg overflow-hidden relative shadow-inner">
-        <motion.div
-          initial={{ height: 0 }}
-          animate={{ height: `${percentage}%` }}
-          className={`absolute bottom-0 w-full ${color} opacity-40 blur-sm`}
-        />
-        <motion.div
-          initial={{ height: 0 }}
-          animate={{ height: `${percentage}%` }}
-          className={`absolute bottom-0 w-full ${color} shadow-lg`}
-        />
-      </div>
-      <div className="text-center">
-        <p className="text-sm font-bold text-slate-500 uppercase tracking-tighter">
-          {material.name}
-        </p>
-        <p className="text-sm font-bold font-mono">
-          <BidiText>
-            {Math.round(material.stock).toLocaleString("en-US")} {material.unit}
-          </BidiText>
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
   const dict = getDictionary(lang);
@@ -80,7 +44,7 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
   const [truckNumber, setTruckNumber] = useState("");
   const [driverName, setDriverName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [completing, setCompleting] = useState(false);
+
 
   const selectedOrder = orders.find(
     (o: OrderWithDetails) => o.id.toString() === selectedOrderId,
@@ -91,7 +55,7 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
     try {
       const data = JSON.parse(selectedOrder.approval.mixData);
       return data.eta || "";
-    } catch (e) {
+    } catch {
       return "";
     }
   }, [selectedOrder]);
@@ -107,8 +71,8 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
         amount: Number(amount),
         unit: "kg",
       }));
-    } catch (e) {
-      console.error("Parse error", e);
+    } catch {
+      console.error("Parse error");
       return [];
     }
   }, [selectedOrder]);
@@ -184,7 +148,7 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
     <div className="space-y-8">
       {/* Upper Status & Silos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 glass-panel p-6 flex flex-col justify-between overflow-hidden relative border-l-4 border-blue-500">
+        <div className="lg:col-span-2 op-card p-6 flex flex-col justify-between overflow-hidden relative border-l-4 border-blue-500">
           <div className="absolute -right-4 -top-4 opacity-5">
             <Settings size={120} />
           </div>
@@ -203,19 +167,12 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
             </div>
           </div>
 
-          <div className="flex justify-around items-end pt-4">
-            {materials.slice(0, 5).map((m: Material) => (
-              <Silo key={m.id} material={m} />
-            ))}
-            {materials.length === 0 && (
-              <p className="py-12 text-slate-500 italic">
-                {"لا توجد مواد مسجلة"}
-              </p>
-            )}
+          <div className="pt-4">
+            <UnifiedSiloDisplay materials={materials.slice(0, 5)} compact={true} className="bg-transparent border-0 p-0 shadow-none" />
           </div>
         </div>
 
-        <div className="glass-panel p-6 border-l-4 border-yellow-500">
+        <div className="op-card p-6 border-l-4 border-yellow-500">
           <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
             <ClipboardCheck className="text-yellow-500" />
             {dict.operator.active_order}
@@ -271,13 +228,13 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
                     {dict.operator.total_vol}
                   </span>
                   <BidiText className="text-sm font-bold">
-                    {selectedOrder.volume} m³
+                    {selectedOrder.volume} م³
                   </BidiText>
                 </div>
                 {approvedEta && (
                   <div className="flex justify-between">
                     <span className="text-sm font-bold text-slate-400">
-                      {lang === "ar" ? "وقت وصول الخلاط" : "Mixer ETA"}
+                      وقت وصول الخلاط
                     </span>
                     <span className="text-sm font-bold text-emerald-400 font-mono">
                       {approvedEta}
@@ -292,7 +249,7 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
 
       {/* Control Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3 glass-panel p-6 overflow-hidden">
+        <div className="lg:col-span-3 op-card p-6 overflow-hidden">
           <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
             <Play className="text-blue-500 fill-current" />
             {dict.operator.batching_control}
@@ -381,6 +338,24 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
             </div>
           </div>
 
+          {/* ملخص ما قبل الإنتاج */}
+          {selectedOrder && truckNumber.trim() && driverName.trim() && quantity > 0 && (
+            <div className="mt-6 bg-white/5 rounded-xl p-4 border border-white/10 grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-xs font-bold text-slate-500 mb-1">الخلطة</p>
+                <p className="text-lg font-black text-cyan-400 font-mono">{selectedOrder.mixDesign?.code || "---"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 mb-1">الكمية</p>
+                <p className="text-2xl font-black text-emerald-400 font-mono">{quantity} <span className="text-sm">م³</span></p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 mb-1">الشاحنة</p>
+                <p className="text-lg font-black text-amber-400 font-mono uppercase">{truckNumber}</p>
+              </div>
+            </div>
+          )}
+
           <div className="mt-8">
             <button
               onClick={handleBatch}
@@ -391,7 +366,19 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
                 !driverName.trim() ||
                 quantity <= 0
               }
-              className={`w-full relative group overflow-hidden bg-blue-600 hover:bg-blue-500 text-white font-black text-2xl py-6 rounded-2xl transition-all shadow-xl shadow-blue-900/40 disabled:opacity-40 disabled:bg-slate-800 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed`}
+              className={`
+                w-full py-6 rounded-2xl font-black text-xl tracking-wide
+                flex items-center justify-center gap-3
+                transition-all duration-300 relative overflow-hidden
+                ${loading
+                  ? "bg-slate-800 text-slate-400 cursor-wait shadow-none"
+                  : "bg-gradient-to-r from-emerald-600 to-cyan-600 text-white cursor-pointer"
+                }
+                ${!loading && "hover:from-emerald-500 hover:to-cyan-500"}
+                ${!loading && "shadow-[0_0_30px_rgba(16,185,129,0.35)] hover:shadow-[0_0_50px_rgba(16,185,129,0.55)]"}
+                border border-emerald-500/20
+                disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none
+              `}
             >
               <AnimatePresence mode="wait">
                 {loading ? (
@@ -403,7 +390,7 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
                     className="flex justify-center items-center gap-3"
                   >
                     <Activity className="animate-spin" />
-                    {dict.operator.producing}
+                    جاري تنفيذ دفعة الخلط...
                   </motion.div>
                 ) : (
                   <motion.div
@@ -413,17 +400,17 @@ export default function BatchForm({ orders, materials, lang }: BatchFormProps) {
                     exit={{ opacity: 0 }}
                     className="flex justify-center items-center gap-3"
                   >
-                    <Play fill="currentColor" />
-                    {dict.operator.start_batching}
+                    <Play className="w-6 h-6 fill-current" />
+                    ابدأ دفعة الخلط الآن
                   </motion.div>
                 )}
               </AnimatePresence>
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-white/20 translate-y-full hover:translate-y-0 transition-transform duration-500" />
             </button>
           </div>
         </div>
 
-        <div className="glass-panel p-6 bg-slate-900/50">
+        <div className="op-card p-6 bg-slate-900/50">
           <div className="flex items-center gap-2 mb-4">
             <AlertCircle size={18} className="text-blue-400" />
             <h4 className="font-bold text-sm tracking-widest">

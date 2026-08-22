@@ -6,14 +6,12 @@ import { requireRole, getCurrentUser } from "@/lib/auth";
 import { logEvent } from "@/lib/logger";
 import { requireUnsealedModule, SystemModule } from "@/lib/governance";
 import { enforceSubscription } from "@/lib/subscriptions";
-
+import { getCompanyFinancialSettings } from "@/app/actions/finance";
 import { z } from "zod";
 import { checkIdempotency, saveIdempotency } from "@/lib/locks";
 
-// GenerateInvoiceSchema removed as feature is disabled
-
 const MarkPaidSchema = z.object({
-  invoiceId: z.string().min(1), // Fixed to match DB
+  invoiceId: z.string().min(1),
   requestId: z.string().min(1).optional(),
 });
 
@@ -38,10 +36,17 @@ export async function generateInvoiceFromTicket(formData: FormData) {
 
   await enforceSubscription(user.companyId);
 
-  // 1. Fetch Ticket with Order context
+  // 1. Fetch Ticket with Order and MixDesign context
   const ticket = await prisma.deliveryTicket.findUnique({
     where: { id: ticketId },
-    include: { order: true },
+    include: {
+      order: {
+        include: {
+          mixDesign: true,
+          customer: true,
+        },
+      },
+    },
   });
 
   if (!ticket) throw new Error("Ticket not found");
@@ -51,10 +56,22 @@ export async function generateInvoiceFromTicket(formData: FormData) {
     throw new Error("Access Denied: Ticket belongs to another company");
   }
 
-  // 3. Create Invoice linked to Ticket
-  // Assuming price calculation logic exists or is simplified here.
-  // Real implementation would fetch unit price from Order or MixDesign.
-  const estimatedAmount = ticket.cumulativeQuantity * 250; // Placeholder price
+  // 3. Dynamic Price Calculation
+  const unitPrice =
+    ticket.order.mixDesign?.concretePrice && ticket.order.mixDesign.concretePrice > 0
+      ? ticket.order.mixDesign.concretePrice
+      : 250;
+
+  const quantity =
+    ticket.cumulativeQuantity && ticket.cumulativeQuantity > 0
+      ? ticket.cumulativeQuantity
+      : 1;
+  const rawSubtotal = quantity * unitPrice;
+
+  // 4. Read Company Financial Settings
+  const settings = await getCompanyFinancialSettings(user.companyId);
+  const taxAmount = (rawSubtotal * settings.taxRate) / 100;
+  const totalAmount = rawSubtotal + taxAmount;
 
   const invoice = await prisma.invoice.create({
     data: {
@@ -63,17 +80,17 @@ export async function generateInvoiceFromTicket(formData: FormData) {
       ticketId: ticket.id,
       orderId: ticket.orderId,
       type: "SALE",
-      amount: estimatedAmount,
+      amount: Math.round(totalAmount),
       status: "DRAFT",
-      currency: "SAR", // Local currency
+      currency: settings.currency,
     },
   });
 
   await logEvent({
     action: "INVOICE_GENERATED",
     entity: "Invoice",
-    entityId: 0, // Invoice ID is string (CUID), Logger expects number currently. Fix later.
-    details: `Generated invoice for Ticket ${ticket.ticketNumber}`,
+    entityId: 0,
+    details: `Generated invoice for Ticket ${ticket.ticketNumber} (${settings.currency} ${totalAmount})`,
     requestId: requestId || undefined,
     startTime,
   });
@@ -82,32 +99,21 @@ export async function generateInvoiceFromTicket(formData: FormData) {
     await saveIdempotency(requestId, invoice);
   }
 
+  revalidatePath("/system/accountant/invoices");
   revalidatePath("/accounts/invoices");
   return invoice;
 }
 
 export async function markPaid(formData: FormData) {
   const startTime = Date.now();
-  await requireRole(["ACCOUNTANT"]);
+  await requireRole(["ACCOUNTANT", "MANAGER"]);
   await requireUnsealedModule(SystemModule.FINANCIALS);
 
   const rawData = {
-    // Fix: Invoice ID is String in schema
     invoiceId: formData.get("invoiceId") as string,
     requestId: formData.get("requestId") as string,
   };
 
-  // Schema needs update too if it expects number
-  // Let's assume validation will fail if we pass string to int schema.
-  // We need to update Zod schema first.
-  // Actually, let's look at schema logic.
-  // Code Line 18: invoiceId: z.number().int().positive()
-  // Schema DB: id String @id @default(cuid())
-  // This code was definitely broken. I will fix the Type AND Security.
-  // But wait, replace_file_content targets specific lines.
-  // I will check the Zod schema definition lines 17-20.
-
-  // Fixed validation variable name to avoid conflict
   const validation = MarkPaidSchema.safeParse(rawData);
   if (!validation.success) throw new Error("VALIDATION_ERROR");
   const { invoiceId, requestId } = validation.data;
@@ -123,7 +129,10 @@ export async function markPaid(formData: FormData) {
         id: invoiceId,
         companyId: user.companyId,
       },
-      data: { status: "PAID" },
+      data: {
+        status: "PAID",
+        paidAt: new Date(),
+      },
     });
 
     if (result.count === 0)
@@ -132,22 +141,24 @@ export async function markPaid(formData: FormData) {
     await logEvent({
       action: "PAYMENT_REC",
       entity: "Invoice",
-      entityId: 0, // Fix type mismatch
+      entityId: 0,
       newStatus: "PAID",
       requestId: requestId || undefined,
       startTime,
       details: `Invoice ${invoiceId} marked as PAID`,
     });
 
+    revalidatePath("/system/accountant/invoices");
+    revalidatePath(`/system/accountant/invoices/${invoiceId}`);
+    revalidatePath("/system/accountant/reports");
     revalidatePath("/accounts/invoices");
-    // Removed return
   } catch (error: unknown) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
     await logEvent({
       action: "PAYMENT_FAILED",
       entity: "Invoice",
-      entityId: 0, // Fix type mismatch
+      entityId: 0,
       requestId: requestId || undefined,
       startTime,
       details: `Payment failure for ${invoiceId}: ${errorMessage}`,
@@ -155,3 +166,4 @@ export async function markPaid(formData: FormData) {
     throw error;
   }
 }
+

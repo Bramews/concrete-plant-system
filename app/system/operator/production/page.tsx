@@ -3,7 +3,6 @@ import { requireRole, getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import BatchForm from "./BatchForm";
 import { cookies } from "next/headers";
-
 import { redirect } from "next/navigation";
 
 export default async function ProductionExecutionPage() {
@@ -15,7 +14,7 @@ export default async function ProductionExecutionPage() {
       "DEPARTMENT_MANAGER",
       "SYSTEM_OWNER",
     ]);
-  } catch (e) {
+  } catch {
     redirect("/api/auth/session-cleanup");
   }
 
@@ -42,7 +41,6 @@ export default async function ProductionExecutionPage() {
     where: { companyId, status: "ACTIVE" },
   });
 
-  // Ensure schema is synced: Order includes approval relation
   const orders = await prisma.order.findMany({
     where: {
       companyId,
@@ -68,12 +66,14 @@ export default async function ProductionExecutionPage() {
   }));
 
   return (
-    <div className="container py-6">
+    <div className="space-y-6">
       <BatchForm orders={formattedOrders} materials={materials} lang={lang} />
+      
       {recentCubeTests.length > 0 && (
-        <div className="mt-8 glass-panel p-6 rounded-2xl border border-white/5 bg-slate-950/30">
+        <div className="op-card p-6">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            🔬 آخر نتائج التكسير
+            <span className="w-2 h-2 rounded-full bg-cyan-400" />
+            آخر نتائج التكسير (المختبر)
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {recentCubeTests.map((test) => (
@@ -91,7 +91,7 @@ export default async function ProductionExecutionPage() {
                 <p className="text-2xl font-black mt-1 text-white">
                   {test.mpa ?? "—"}
                 </p>
-                <p className="text-xs text-slate-500">MPa | {test.age} يوم</p>
+                <p className="text-xs text-slate-500 font-mono">ميغاباسكال | {test.age} يوم</p>
                 <p className="text-sm font-bold mt-1">
                   {test.result === "PASS" ? "ناجح ✓" : "فاشل ✗"}
                 </p>

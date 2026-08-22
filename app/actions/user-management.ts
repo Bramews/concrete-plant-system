@@ -83,17 +83,26 @@ export async function inviteUser(
       where: { email },
     });
 
+    const company = await prisma.company.findUnique({
+      where: { id: companyId },
+      select: { slug: true },
+    });
+    if (!company) return { error: "الشركة غير موجودة" };
+
+    const rawUsername = (username || name || "user").trim();
+    const prefix = rawUsername.includes("@") ? rawUsername.split("@")[0] : rawUsername;
+    const finalUsername = `${prefix}@${company.slug.toLowerCase()}`;
+
     if (!user) {
       // Create new user
-      const hashedPassword = await hash("ChangeMe123!", 10); // Default password policy?
+      const hashedPassword = await hash("ChangeMe123!", 10);
       user = await prisma.user.create({
         data: {
           email,
-          username, // Unique username required
+          username: finalUsername,
           name,
           password: hashedPassword,
           status: "ACTIVE",
-          // Removed top-level role assignment as we use Memberships now
         },
       });
     }

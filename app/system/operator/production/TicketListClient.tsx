@@ -3,8 +3,9 @@
 import { useState, useMemo } from "react";
 import { Icons } from "@/components/ui/Icons";
 import { format } from "date-fns";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { TransitTimerBadge } from "@/components/logistics/TransitTimerBadge";
 
 interface Ticket {
   id: number;
@@ -25,10 +26,9 @@ interface Ticket {
 
 interface TicketListClientProps {
   tickets: Ticket[];
-  dict: any;
 }
 
-export function TicketListClient({ tickets, dict }: TicketListClientProps) {
+export function TicketListClient({ tickets }: TicketListClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filtered = useMemo(() => {
@@ -44,14 +44,13 @@ export function TicketListClient({ tickets, dict }: TicketListClientProps) {
 
   return (
     <div
-      className="z-root min-h-screen bg-slate-950 text-slate-300 p-8 lg:p-12 overflow-y-auto custom-scrollbar"
+      className="space-y-6 custom-scrollbar"
       dir="rtl"
     >
-      <style dangerouslySetInnerHTML={{ __html: zStyles }} />
 
       <div className="max-w-7xl mx-auto space-y-10">
         {/* Header Section */}
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-10 bg-slate-900/40 border border-white/5 rounded-[3.5rem] p-10 relative overflow-hidden shadow-2xl">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-10 bg-slate-900/40 border border-white/5 rounded-2xl p-10 relative overflow-hidden shadow-2xl">
           <div className="absolute -left-10 -top-10 w-40 h-40 bg-indigo-500/10 blur-[80px] rounded-full" />
 
           <div>
@@ -93,12 +92,15 @@ export function TicketListClient({ tickets, dict }: TicketListClientProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
-                className="group bg-slate-900/20 border border-white/5 rounded-[2.5rem] p-6 flex flex-col lg:flex-row items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all relative overflow-hidden"
+                className="group bg-slate-900/20 border border-white/5 rounded-xl p-6 flex flex-col lg:flex-row items-center justify-between hover:bg-white/5 hover:border-white/10 transition-all relative overflow-hidden"
               >
                 {/* ID & Time */}
                 <div className="flex flex-col items-center lg:items-end w-32 border-l border-white/5 pl-8">
-                  <span className="text-sm font-semibold text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/10 western-nums mb-2">
+                  <span className="text-sm font-semibold text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/10 western-nums mb-2">
                     {ticket.ticketNumber}
+                  </span>
+                  <span className="text-xs font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/10 font-mono mb-2">
+                    {ticket.order.mixDesign?.code}
                   </span>
                   <div className="text-xs font-medium text-slate-400 western-nums tabular-nums">
                     {format(new Date(ticket.createdAt), "HH:mm:ss")}
@@ -161,6 +163,14 @@ export function TicketListClient({ tickets, dict }: TicketListClientProps) {
                         ? "تم الصب والإرسال"
                         : ticket.status}
                     </div>
+
+                    <TransitTimerBadge
+                      dispatchedAt={ticket.createdAt}
+                      status={ticket.status}
+                      ticketNumber={ticket.ticketNumber}
+                      truckNumber={ticket.truckNumber}
+                    />
+
                     <div className="flex gap-1">
                       <button
                         onClick={() => window.print()}
@@ -175,7 +185,7 @@ export function TicketListClient({ tickets, dict }: TicketListClientProps) {
               </motion.div>
             ))
           ) : (
-            <div className="text-center py-48 bg-slate-900/20 border-2 border-dashed border-white/5 rounded-[5rem]">
+            <div className="text-center py-48 bg-slate-900/20 border-2 border-dashed border-white/5 rounded-2xl">
               <Icons.Inbox className="w-20 h-20 text-slate-600 mx-auto mb-6 opacity-40" />
               <h3 className="text-xl font-bold text-slate-400 uppercase tracking-wider">
                 لا توجد تذاكر صادرة حالياً
@@ -191,11 +201,3 @@ export function TicketListClient({ tickets, dict }: TicketListClientProps) {
   );
 }
 
-const zStyles = `
-  .z-root,.z-root *{box-sizing:border-box}
-  .western-nums{font-family:"Inter",sans-serif!important;font-variant-numeric:tabular-nums lining-nums!important}
-  .custom-scrollbar::-webkit-scrollbar{width:6px}
-  .custom-scrollbar::-webkit-scrollbar-track{background:rgba(255,255,255,0.02)}
-  .custom-scrollbar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:10px}
-  footer{display:none!important}
-`;

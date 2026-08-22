@@ -13,10 +13,11 @@ function Row({ label, value }: { label: string; value: string }) {
 export default async function InvoiceVerifyPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }> | { id: string };
 }) {
+  const resolvedParams = await Promise.resolve(params);
   const invoice = await prisma.invoice.findUnique({
-    where: { id: params.id },
+    where: { id: resolvedParams.id },
     include: {
       order: {
         include: {

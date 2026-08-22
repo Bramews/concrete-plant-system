@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { BidiText } from "@/components/ui/BidiText";
 import { MapPickerModal } from "@/components/ui/MapPickerModal";
+import { CustomerCreditBadge } from "@/components/sales/CustomerCreditBadge";
 
 type MixDesign = {
   id: number;
@@ -38,6 +39,7 @@ interface SearchableSelectProps {
   value: string;
   onChange: (val: string) => void;
   required?: boolean;
+  extraHeader?: React.ReactNode;
 }
 
 function SearchableSelect({
@@ -48,6 +50,7 @@ function SearchableSelect({
   value,
   onChange,
   required = false,
+  extraHeader,
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -81,9 +84,12 @@ function SearchableSelect({
 
   return (
     <div className="space-y-1.5 relative text-right" ref={containerRef}>
-      <label htmlFor={id} className="text-xs font-bold text-slate-300 block">
-        {label}
-      </label>
+      <div className="flex items-center justify-between">
+        <label htmlFor={id} className="text-xs font-bold text-slate-300 block">
+          {label}
+        </label>
+        {extraHeader}
+      </div>
       <div className="relative">
         <input
           id={id}
@@ -368,7 +374,15 @@ export default function CreateOrderForm({
 
     const res = await createOrderWithCustomer(fd);
     if (res.success) {
-      toast.success("تم تسجيل الطلب بنجاح وإرساله للمدير للموافقة.");
+      if (res.isFinancialHold) {
+        toast.warning(
+          res.message ||
+            "تم تعليق الطلب مؤقتاً بانتظار موافقة الإدارة المالية لتجاوز سقف الائتمان.",
+          { duration: 6000 },
+        );
+      } else {
+        toast.success("تم تسجيل الطلب بنجاح وإرساله للمدير للموافقة.");
+      }
       const targetPath = window.location.pathname.includes("/sales")
         ? "/system/sales/orders"
         : "/system/orders";
@@ -452,15 +466,32 @@ export default function CreateOrderForm({
           {step === 1 && (
             <div className="space-y-3">
               {/* اسم العميل */}
-              <SearchableSelect
-                id="customer-name"
-                label="اسم العميل *"
-                placeholder="ابحث أو اكتب اسم عميل جديد..."
-                options={customers}
-                value={customerName}
-                onChange={(val) => setCustomerName(val)}
-                required
-              />
+              {(() => {
+                const matchedCustomer = (customers || []).find(
+                  (c: any) =>
+                    c.name?.trim().toLowerCase() === customerName?.trim().toLowerCase(),
+                );
+                return (
+                  <SearchableSelect
+                    id="customer-name"
+                    label="اسم العميل *"
+                    placeholder="ابحث أو اكتب اسم عميل جديد..."
+                    options={customers}
+                    value={customerName}
+                    onChange={(val) => setCustomerName(val)}
+                    required
+                    extraHeader={
+                      matchedCustomer ? (
+                        <CustomerCreditBadge
+                          customerId={matchedCustomer.id}
+                          customerName={matchedCustomer.name}
+                          orderVolume={parseFloat(quantity) || 0}
+                        />
+                      ) : null
+                    }
+                  />
+                );
+              })()}
 
               {/* رقم الهاتف */}
               <div className="space-y-1.5">

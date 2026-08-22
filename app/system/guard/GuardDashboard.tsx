@@ -16,7 +16,7 @@ import {
   AlertOctagon,
   BellRing,
   ClipboardCheck,
-  UserCheck,
+  Check,
   ShieldAlert,
 } from "lucide-react";
 import {
@@ -27,6 +27,7 @@ import {
 import { Vehicle } from "@prisma/client";
 import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { BidiText } from "@/components/ui/BidiText";
+import { SunlightModeToggle } from "@/components/ui/SunlightModeToggle";
 import styles from "./guard.module.css";
 
 interface GuardDashboardProps {
@@ -281,13 +282,16 @@ export default function GuardDashboard({
           </p>
         </div>
 
-        <button
-          onClick={() => setIsSosConfirmOpen(true)}
-          className="px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl transition-all flex items-center gap-2 shadow-lg shadow-rose-600/20 active:scale-95 text-sm animate-pulse"
-        >
-          <BellRing size={18} />
-          إرسال نداء استغاثة SOS 🚨
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <SunlightModeToggle />
+          <button
+            onClick={() => setIsSosConfirmOpen(true)}
+            className="px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white font-black rounded-2xl transition-all flex items-center gap-2 shadow-lg shadow-rose-600/20 active:scale-95 text-sm animate-pulse"
+          >
+            <BellRing size={18} />
+            إرسال نداء استغاثة SOS 🚨
+          </button>
+        </div>
       </div>
 
       {/* Upper Stats Panel */}
@@ -602,7 +606,7 @@ export default function GuardDashboard({
                               : "border-white/10"
                           }`}
                         >
-                          {isChecked && <UserCheck size={12} />}
+                          {isChecked && <Check size={12} />}
                         </div>
                         <span className="text-sm font-bold leading-normal">
                           {item.label}

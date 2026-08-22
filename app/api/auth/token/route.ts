@@ -19,9 +19,34 @@ export async function POST(request: NextRequest) {
       return apiResponse.error("Username and password are required.", 400);
     }
 
+    const rawInput = (username || "").trim();
+    const cleanInput = rawInput.toLowerCase();
+
+    const orConditions: any[] = [
+      { username: rawInput },
+      { username: cleanInput },
+      { email: rawInput },
+      { email: cleanInput },
+    ];
+
+    if (rawInput.includes("@")) {
+      const parts = rawInput.split("@");
+      if (parts.length === 2) {
+        const [p1, p2] = parts;
+        orConditions.push(
+          { username: `${p1}@${p2}` },
+          { username: `${p1.toLowerCase()}@${p2.toLowerCase()}` },
+          { username: `${p1}@${p2.toLowerCase()}` },
+          { username: `${p2}@${p1}` },
+          { username: `${p2.toLowerCase()}@${p1.toLowerCase()}` },
+          { username: `${p2}@${p1.toLowerCase()}` },
+        );
+      }
+    }
+
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ username }, { email: username }],
+        OR: orConditions,
       },
       include: {
         company: true,

@@ -77,7 +77,28 @@ export async function createOrderWithCustomer(formData: FormData) {
     });
     if (!mix) throw new Error("الخلطة المحددة غير موجودة");
 
+    // Check Customer Credit Status & Enforcement
+    let initialStatus = "DRAFT";
+    let creditWarning = "";
+    const estimatedOrderValue = quantity * (mix.concretePrice || 250);
+
+    const { checkCustomerCreditStatus } = await import("@/app/actions/finance");
+    const creditCheck = await checkCustomerCreditStatus(
+      companyId,
+      customer.id,
+      estimatedOrderValue,
+    );
+
+    if (!creditCheck.isAllowed) {
+      initialStatus = "PENDING_FINANCIAL_APPROVAL";
+      creditWarning = creditCheck.reason || "تم تعليق الطلبية بانتظار موافقة الإدارة المالية بسبب سقف الائتمان.";
+    }
+
     const orderNumber = `ORD-${Date.now()}`;
+
+    const finalNotes = creditWarning
+      ? `${notes ? `${notes}\n` : ""}[تنبيه مالي: ${creditWarning}]`
+      : notes;
 
     const order = await prisma.order.create({
       data: {
@@ -88,23 +109,30 @@ export async function createOrderWithCustomer(formData: FormData) {
         mixDesignId,
         volume: quantity,
         date,
-        status: "DRAFT",
-        notes,
+        status: initialStatus,
+        notes: finalNotes,
       },
     });
 
     await logEvent({
-      action: "CREATE",
+      action: initialStatus === "PENDING_FINANCIAL_APPROVAL" ? "FINANCIAL_HOLD" : "CREATE",
       entity: "Order",
       entityId: order.id,
-      newStatus: "DRAFT",
-      details: `طلب جديد ${orderNumber} للعميل "${customerName}" بحجم ${quantity} م³`,
+      newStatus: initialStatus,
+      details: `طلب ${orderNumber} للعميل "${customerName}" بحجم ${quantity} م³ - الحالة: ${initialStatus}`,
     });
 
     revalidatePath("/system/orders");
     revalidatePath("/system/sales/orders");
+    revalidatePath("/system/accountant/customers");
 
-    return { success: true, id: order.id, orderNumber };
+    return {
+      success: true,
+      id: order.id,
+      orderNumber,
+      isFinancialHold: initialStatus === "PENDING_FINANCIAL_APPROVAL",
+      message: creditWarning || undefined,
+    };
   } catch (err: unknown) {
     console.error("Create Order Error:", err);
     return {

@@ -351,9 +351,16 @@ export async function createCompanyUser(companyId: number, formData: FormData) {
 
     if (!company) return { error: "الشركة غير موجودة" };
 
-    const username =
-      manualUsername ||
-      `${company.slug}_${name.split(" ")[0].toLowerCase()}_${Math.floor(Math.random() * 1000)}`;
+    const rawManualUsername = (manualUsername || "").trim();
+    let username = "";
+    if (rawManualUsername) {
+      const prefix = rawManualUsername.includes("@")
+        ? rawManualUsername.split("@")[0]
+        : rawManualUsername;
+      username = `${prefix}@${company.slug.toLowerCase()}`;
+    } else {
+      username = `${name.split(" ")[0].toLowerCase()}_${Math.floor(Math.random() * 1000)}@${company.slug.toLowerCase()}`;
+    }
 
     if (existingUser) {
       // Check if they have an active membership here

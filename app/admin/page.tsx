@@ -48,6 +48,7 @@ export default async function AdminPage() {
     },
     mode,
     timestamp: new Date(),
+    companies: activeTenants,
     activeTenants,
     systemLogs,
     domains,

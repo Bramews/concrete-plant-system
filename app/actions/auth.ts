@@ -72,9 +72,36 @@ export async function login(formData: FormData) {
   const remember = formData.get("remember") === "on";
 
   try {
+    const rawInput = (username || "").trim();
+    const cleanInput = rawInput.toLowerCase();
+
+    const orConditions: any[] = [
+      { username: rawInput },
+      { username: cleanInput },
+      { email: rawInput },
+      { email: cleanInput },
+    ];
+
+    if (rawInput.includes("@")) {
+      const parts = rawInput.split("@");
+      if (parts.length === 2) {
+        const [p1, p2] = parts;
+        // User entered "user@slug" (e.g. 5@demo-plant)
+        orConditions.push(
+          { username: `${p1}@${p2}` },
+          { username: `${p1.toLowerCase()}@${p2.toLowerCase()}` },
+          { username: `${p1}@${p2.toLowerCase()}` },
+          // If user reversed the order: "slug@user" (e.g. demo-plant@5)
+          { username: `${p2}@${p1}` },
+          { username: `${p2.toLowerCase()}@${p1.toLowerCase()}` },
+          { username: `${p2}@${p1.toLowerCase()}` },
+        );
+      }
+    }
+
     const user = await prisma.user.findFirst({
       where: {
-        OR: [{ username: username }, { email: username }],
+        OR: orConditions,
       },
       include: {
         company: true,

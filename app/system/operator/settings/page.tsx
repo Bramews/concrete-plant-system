@@ -16,7 +16,7 @@ export default async function OperatorSettingsPage() {
       "DEPARTMENT_MANAGER",
       "SYSTEM_OWNER",
     ]);
-  } catch (e) {
+  } catch {
     redirect("/api/auth/session-cleanup");
   }
 
@@ -117,53 +117,58 @@ export default async function OperatorSettingsPage() {
 
   return (
     <div className="space-y-8" dir="rtl">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/60 p-6 rounded-2xl border border-white/5 shadow-xl">
+      {/* Header Panel */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#0c1220] p-6 rounded-2xl border border-white/5 shadow-xl">
         <div>
           <h2 className="text-2xl font-black text-white flex items-center gap-2">
             <Icons.Settings className="w-7 h-7 text-emerald-400" />
             <span>إعدادات التشغيل ومعدات المحطة</span>
           </h2>
           <p className="text-slate-400 text-sm font-medium mt-1">
-            إدارة صيانة الخلاطات، البلاغات الذكية، قطع الغيار، وإعدادات ربط الـ
-            PLC
+            إدارة صيانة الخلاطات، البلاغات الذكية، قطع الغيار، وإعدادات ربط الـ PLC
           </p>
         </div>
         <div className="flex items-center gap-3">
           <span className="px-4 py-2 rounded-xl bg-slate-800 border border-white/10 text-xs font-bold text-slate-300">
             عنوان الـ PLC:{" "}
             <span className="font-mono text-cyan-400">
-              {plcSetting?.ipAddress || "192.168.1.100"}
+              {plcSetting?.detectedIp || "192.168.1.100"}
             </span>
           </span>
         </div>
       </div>
 
       {/* Equipment Maintenance Hub */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-white/5 pb-2">
           <span>🔧 مركز صيانة المعدات والأجهزة</span>
         </h3>
-        <EquipmentHub initialEquipment={formattedEquipment} />
+        <div className="op-card p-6">
+          <EquipmentHub initialEquipment={formattedEquipment} />
+        </div>
       </div>
 
       {/* Smart Fault Log */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-white/5 pb-2">
           <span>🚨 سجل الأعطال والبلاغات الذكية</span>
         </h3>
-        <SmartFaultLog
-          initialFaults={formattedFaults}
-          equipmentOptions={equipmentOptions}
-        />
+        <div className="op-card p-6">
+          <SmartFaultLog
+            initialFaults={formattedFaults}
+            equipmentOptions={equipmentOptions}
+          />
+        </div>
       </div>
 
       {/* Spare Parts Inventory */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-white/5 pb-2">
           <span>📦 مخزن قطع الغيار وقطع الصيانة</span>
         </h3>
-        <SparePartsTracker initialParts={formattedSpareParts} />
+        <div className="op-card p-6">
+          <SparePartsTracker initialParts={formattedSpareParts} />
+        </div>
       </div>
     </div>
   );

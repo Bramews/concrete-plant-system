@@ -1,63 +1,46 @@
 import { ReactNode } from "react";
-import { cookies } from "next/headers";
-import { dictionary, Locale } from "@/lib/dictionary";
-import { Icons } from "@/components/ui/Icons";
-import { OperatorNav } from "./OperatorNav";
+import { getCurrentUser } from "@/lib/auth";
+import { OperatorSidebar } from "@/components/operator/OperatorSidebar";
+import { OperatorHeader } from "@/components/operator/OperatorHeader";
+import "./operator.css";
 
-export default async function OperatorLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const cookieStore = await cookies();
-  const lang = (cookieStore.get("NEXT_LOCALE")?.value as Locale) || "ar";
-
-  const tabs = [
-    {
-      href: "/system/operator/cockpit",
-      label: "قمرة القيادة الحية",
-      iconName: "Activity" as const,
-    },
-    {
-      href: "/system/operator/production",
-      label: "تنفيذ الإنتاج والخلط",
-      iconName: "Factory" as const,
-    },
-    {
-      href: "/system/operator/tickets",
-      label: "تذاكر التوصيل والأسطول",
-      iconName: "Ticket" as const,
-    },
-    {
-      href: "/system/operator/materials",
-      label: "حالة المواد والصوامع",
-      iconName: "Box" as const,
-    },
-    {
-      href: "/system/operator/settings",
-      label: "إعدادات التشغيل والمعدات",
-      iconName: "Settings" as const,
-    },
-  ];
-
+export default async function OperatorLayout({ children }: { children: ReactNode }) {
+  const user = await getCurrentUser();
+  const userName = user?.name || "المشغّل";
+  
   return (
-    <div className="space-y-6" dir="rtl">
-      <div className="flex items-center justify-between border-b border-white/5 pb-4">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <Icons.Activity className="w-8 h-8 text-emerald-400" />
-            <span>التحكم بالإنتاج وقمرة القيادة</span>
-          </h1>
-          <p className="text-slate-400 text-sm font-medium mt-1">
-            إدارة خطوط الخلط المباشر، الصوامع، التذاكر، وإعدادات المعدات
-          </p>
-        </div>
-      </div>
-
-      <OperatorNav tabs={tabs} />
-
-      <div className="rounded-2xl border border-white/5 bg-slate-950/40 p-4 min-h-[550px] shadow-2xl backdrop-blur-md">
-        {children}
+    <div className="flex h-screen bg-[#060a12] overflow-hidden" dir="rtl">
+      {/* الشريط الجانبي الثابت */}
+      <OperatorSidebar />
+      
+      {/* المنطقة الرئيسية */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* الشريط العلوي */}
+        <OperatorHeader userName={userName} />
+        
+        {/* محتوى الصفحة */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {children}
+        </main>
+        
+        {/* شريط الحالة السفلي */}
+        <footer className="shrink-0 flex items-center justify-between px-6 py-2 bg-[#0c1220] border-t border-white/5 text-xs font-mono text-slate-500">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 op-pulse" />
+              وحدة التحكم v2.4 — متصل
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              الموازين — مكيّلة ومعايَرة
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+              وضع التشغيل: تلقائي
+            </span>
+          </div>
+          <span>نظام المحطة الخرسانية — الإصدار 3.1 © نظام المشغّل</span>
+        </footer>
       </div>
     </div>
   );

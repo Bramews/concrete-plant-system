@@ -64,7 +64,17 @@ interface ScadaPlantConsoleProps {
     detectedPort?: number | null;
     activeProtocol?: string | null;
   };
-  activeOrder?: any;
+  activeOrder?: {
+    id?: number;
+    mixDesign?: {
+      cementKg?: number;
+      aggregatesKg?: number;
+      waterLiters?: number;
+      admixtureLiters?: number;
+      code?: string;
+    } | null;
+    [key: string]: unknown;
+  } | null;
 }
 
 export function ScadaPlantConsole({
@@ -133,7 +143,7 @@ export function ScadaPlantConsole({
             `تم التعرف الفوري واقتران جهاز الـ PLC: ${res.device.brandName} ⚡ [${res.device.ip}:${res.device.port}]`,
           );
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         toast.error("فشل الفحص والتعرف التلقائي على جهاز ה-PLC");
       }
     });
@@ -159,8 +169,9 @@ export function ScadaPlantConsole({
             ? "تم التوافق مع النمط الأوتوماتيكي الآلي 🟢"
             : "تم التحويل إلى النمط اليدوي وتوثيقه في التقرير ⚠️",
         );
-      } catch (err: any) {
-        toast.error(err.message || "فشل تغيير نمط التشغيل");
+      } catch (err: unknown) {
+        const error = err as Error;
+        toast.error(error.message || "فشل تغيير نمط التشغيل");
       }
     });
   };
@@ -176,7 +187,7 @@ export function ScadaPlantConsole({
         toast.success(
           `تم حفظ تعويض الرطوبة المائية (${moistureOffset}%) وتدوينه بالتقرير`,
         );
-      } catch (err: any) {
+      } catch (err: unknown) {
         toast.error("فشل حفظ التعديل المائي");
       }
     });
@@ -196,7 +207,7 @@ export function ScadaPlantConsole({
         toast.success(
           `تم إرسال إشارة الـ PLC للمخرج/Pin [${pin}] لتشغيل: ${btn.label} ⚡`,
         );
-      } catch (err: any) {
+      } catch (err: unknown) {
         toast.error("فشل إرسال إشارة الهاردوير للـ PLC");
       }
     });

@@ -64,7 +64,7 @@ export default function SmartFaultLog({
           eqOptions.find((o) => o.id === eqId)?.name || "معدة غير معروفة";
 
         const newFault: FaultItem = {
-          ...(res.data as any),
+          ...(res.data as unknown as FaultItem),
           equipmentName: eqName,
         };
 

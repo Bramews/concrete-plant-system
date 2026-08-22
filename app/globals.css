@@ -1418,3 +1418,58 @@ h6 {
   font-size: 11px !important;
   border-radius: 0.75rem !important;
 }
+
+/* ============================================================
+   HIGH-CONTRAST SUNLIGHT OUTDOOR MODE (الوضع الميداني الشمسي)
+   ============================================================ */
+html.sunlight-mode,
+[data-theme="sunlight"],
+body.sunlight-mode {
+  --bg-primary: #ffffff !important;
+  --bg-secondary: #f4f4f5 !important;
+  --text-primary: #000000 !important;
+  --text-secondary: #18181b !important;
+  --border-color: #000000 !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+html.sunlight-mode .bg-slate-950,
+html.sunlight-mode .bg-slate-900,
+html.sunlight-mode .bg-slate-900\/40,
+html.sunlight-mode .bg-slate-900\/60,
+html.sunlight-mode .bg-slate-950\/40,
+html.sunlight-mode .bg-slate-950\/60,
+html.sunlight-mode .bg-slate-950\/80,
+html.sunlight-mode .bg-black\/40 {
+  background-color: #ffffff !important;
+  border-color: #27272a !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15) !important;
+}
+
+html.sunlight-mode .text-slate-400,
+html.sunlight-mode .text-slate-500,
+html.sunlight-mode .text-slate-300 {
+  color: #18181b !important;
+  font-weight: 700 !important;
+}
+
+html.sunlight-mode .text-white {
+  color: #000000 !important;
+  font-weight: 900 !important;
+}
+
+html.sunlight-mode [class*="border-white"] {
+  border-color: #71717a !important;
+}
+
+html.sunlight-mode input,
+html.sunlight-mode select,
+html.sunlight-mode textarea {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  font-weight: 700 !important;
+}
+

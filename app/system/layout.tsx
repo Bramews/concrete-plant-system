@@ -123,6 +123,21 @@ export default async function SystemLayout({
 
   const config = getDashboardConfig(user.role, lang, undefined, path);
   const voiceEnabled = settings["voice_assistant_enabled"] === "true";
+  const isOperatorPage = pathname.startsWith("/system/operator");
+
+  if (isOperatorPage) {
+    return (
+      <>
+        <NetworkBroadcastListener
+          companyId={user.companyId || 1}
+          currentUserId={user.id}
+          userRole={user.role}
+        />
+        {voiceEnabled && <VoiceAssistant />}
+        {children}
+      </>
+    );
+  }
 
   return (
     <div className="fixed inset-0 w-full h-full bg-background font-sans antialiased flex overflow-hidden">

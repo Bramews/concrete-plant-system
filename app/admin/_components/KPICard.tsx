@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Icons } from "@/components/ui/Icons";
 
 interface KPICardProps {
@@ -13,6 +14,7 @@ interface KPICardProps {
     | "kpi-gradient-3"
     | "kpi-gradient-4";
   iconColor: string;
+  href?: string;
 }
 
 export function KPICard({
@@ -22,13 +24,16 @@ export function KPICard({
   icon,
   gradient,
   iconColor,
+  href,
 }: KPICardProps) {
   const Icon = Icons[icon];
   const isPositive = change && change > 0;
 
-  return (
+  const content = (
     <div
-      className={`glass-card glass-card-hover ${gradient} p-6 rounded-2xl animate-fade-in`}
+      className={`glass-card glass-card-hover ${gradient} p-6 rounded-2xl animate-fade-in ${
+        href ? "cursor-pointer hover:scale-[1.02] transition-all duration-300" : ""
+      }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div
@@ -51,4 +56,15 @@ export function KPICard({
       </div>
     </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block group">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }
+

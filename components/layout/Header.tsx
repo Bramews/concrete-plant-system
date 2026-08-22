@@ -3,6 +3,7 @@
 import { Icons } from "@/components/ui/Icons";
 import { SystemOwnerControls } from "@/components/system/SystemOwnerControls";
 import { usePreferences } from "@/context/PreferenceContext";
+import { SunlightModeToggle } from "@/components/ui/SunlightModeToggle";
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
@@ -272,7 +273,8 @@ export function Header({ user }: HeaderProps) {
             </div>
 
             {/* ── Quick Controls ── */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
+              <SunlightModeToggle variant="compact" />
               <button
                 onClick={() =>
                   updatePreference("language", isRtl ? "en" : "ar")
