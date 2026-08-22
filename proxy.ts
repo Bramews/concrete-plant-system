@@ -154,7 +154,9 @@ async function originalProxy(request: NextRequest) {
   const subdomain = extractSubdomain(host);
 
   // 5. Auth Payload (Only fetch if needed)
-  const accessToken = request.cookies.get("auth_token")?.value;
+  const accessToken =
+    request.cookies.get("auth_token")?.value ||
+    request.cookies.get("session_token")?.value;
   let payload: JWTPayload | null = null;
 
   // 6. Enforce subdomain for protected routes (Skip for localhost)

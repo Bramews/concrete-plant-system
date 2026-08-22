@@ -30,7 +30,9 @@ export const getSession = cache(async function getSession() {
     // Outside request context (e.g. CLI script), return null
     return null;
   }
-  const token = cookieStore.get("session_token")?.value;
+  const token =
+    cookieStore.get("session_token")?.value ||
+    cookieStore.get("auth_token")?.value;
 
   if (!token) return null;
 
