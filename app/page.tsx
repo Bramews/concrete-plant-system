@@ -18,23 +18,35 @@ export default async function LandingPage() {
   const lang = (cookieStore.get("NEXT_LOCALE")?.value as Locale) || "ar";
 
   // 1. If user is already logged in, redirect them directly to their page
-  const session = await getSession();
-  if (session) {
-    const role = session.role;
-    const isImpersonating = cookieStore.has("impersonation_id");
+  try {
+    const session = await getSession();
+    if (session) {
+      const role = session.role;
+      const isImpersonating = cookieStore.has("impersonation_id");
 
-    if (role === "SYSTEM_OWNER" && !isImpersonating) {
-      redirect("/admin");
+      if (role === "SYSTEM_OWNER" && !isImpersonating) {
+        redirect("/admin");
+      }
+
+      const config = getDashboardConfig(role, lang);
+      redirect(config.basePath);
     }
-
-    const config = getDashboardConfig(role, lang);
-    redirect(config.basePath);
+  } catch (error) {
+    // If redirect throws NEXT_REDIRECT, Next.js handles it. Otherwise ignore DB cold start error.
+    if ((error as Error)?.message?.includes("NEXT_REDIRECT")) {
+      throw error;
+    }
   }
 
   const headersList = await headers();
   const host = headersList.get("host") || "";
   const subdomain = extractSubdomain(host);
-  const branding = subdomain ? await getCompanyBrandingBySlug(subdomain) : null;
+  let branding = null;
+  try {
+    branding = subdomain ? await getCompanyBrandingBySlug(subdomain) : null;
+  } catch (_) {
+    branding = null;
+  }
 
   const isRtl = lang === "ar";
   const dir = isRtl ? "rtl" : "ltr";

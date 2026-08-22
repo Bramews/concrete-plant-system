@@ -78,43 +78,45 @@ const DEFAULT_CONFIG: LandingPageConfig = {
 };
 
 export async function getLandingPageConfig(): Promise<LandingPageConfig> {
-  const config = await prisma.landingPageConfig.findFirst({
-    where: { id: 1 },
-  });
+  try {
+    const config = await prisma.landingPageConfig.findFirst({
+      where: { id: 1 },
+    });
 
-  if (!config) {
-    // Return default but don't create yet to avoid write on GET
-    // Or create it if missing? Let's create it if missing for simplicity in admin
-    // Actually, create on first admin access or write is better.
-    // Let's just return defaults if missing.
+    if (!config) {
+      return DEFAULT_CONFIG;
+    }
+
+    let parsedFeatures = [];
+    try {
+      parsedFeatures = JSON.parse(config.features);
+    } catch (_) {
+      parsedFeatures = DEFAULT_CONFIG.features;
+    }
+
+    return {
+      heroTitleAr: config.heroTitleAr,
+      heroTitleEn: config.heroTitleEn,
+      heroSubtitleAr: config.heroSubtitleAr,
+      heroSubtitleEn: config.heroSubtitleEn,
+      ctaTextAr: config.ctaTextAr,
+      ctaTextEn: config.ctaTextEn,
+      loginTextAr: config.loginTextAr,
+      loginTextEn: config.loginTextEn,
+      headerLogoTextAr: config.headerLogoTextAr,
+      headerLogoTextEn: config.headerLogoTextEn,
+      headerLogoInitial: config.headerLogoInitial,
+      backgroundStyle: config.backgroundStyle,
+      primaryColor: config.primaryColor,
+      features:
+        parsedFeatures.length > 0 ? parsedFeatures : DEFAULT_CONFIG.features,
+    };
+  } catch (error) {
+    console.warn("[LandingPage] Falling back to default config:", error);
     return DEFAULT_CONFIG;
   }
-
-  let parsedFeatures = [];
-  try {
-    parsedFeatures = JSON.parse(config.features);
-  } catch (_) {
-    parsedFeatures = DEFAULT_CONFIG.features;
-  }
-
-  return {
-    heroTitleAr: config.heroTitleAr,
-    heroTitleEn: config.heroTitleEn,
-    heroSubtitleAr: config.heroSubtitleAr,
-    heroSubtitleEn: config.heroSubtitleEn,
-    ctaTextAr: config.ctaTextAr,
-    ctaTextEn: config.ctaTextEn,
-    loginTextAr: config.loginTextAr,
-    loginTextEn: config.loginTextEn,
-    headerLogoTextAr: config.headerLogoTextAr,
-    headerLogoTextEn: config.headerLogoTextEn,
-    headerLogoInitial: config.headerLogoInitial,
-    backgroundStyle: config.backgroundStyle,
-    primaryColor: config.primaryColor,
-    features:
-      parsedFeatures.length > 0 ? parsedFeatures : DEFAULT_CONFIG.features,
-  };
 }
+
 
 export async function updateLandingPageConfig(data: LandingPageConfig) {
   // Check permission (System Owner only)
