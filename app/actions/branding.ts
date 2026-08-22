@@ -27,47 +27,46 @@ export async function getCompanyBranding(companyId: number) {
 }
 
 export async function getCompanyBrandingBySlug(slug: string) {
-  const company = await prisma.company.findUnique({
-    where: { slug },
-    include: { branding: true },
-  });
+  try {
+    const company = await prisma.company.findUnique({
+      where: { slug },
+      include: { branding: true },
+    });
 
-  if (!company) return null;
+    if (!company) return null;
 
-  // Derive defaults from company name if branding is missing
-  // We leave text fields null so the frontend can handle localization (Ar/En)
-  const defaultBranding = {
-    logoText: company.name.charAt(0).toUpperCase(),
-    systemName: company.name,
-    subtitle: null,
-    loginButton: null,
-    primaryColor: "#6366f1",
-    secondaryColor: "#a855f7",
-    accentColor: "#22d3ee",
-    logoUrl: null,
-    homeButtonShow: true,
-    homeButtonTextAr: "الرئيسية",
-    homeButtonTextEn: "HOME",
-    homeButtonSize: "15px",
-    homeButtonWeight: "font-extrabold",
-    homeButtonTracking: "tracking-[0.3em]",
-    homeButtonColor: null,
-    homeButtonAnimation: "breath",
-  };
+    const defaultBranding = {
+      logoText: company.name.charAt(0).toUpperCase(),
+      systemName: company.name,
+      subtitle: null,
+      loginButton: null,
+      primaryColor: "#6366f1",
+      secondaryColor: "#a855f7",
+      accentColor: "#22d3ee",
+      logoUrl: null,
+      homeButtonShow: true,
+      homeButtonTextAr: "الرئيسية",
+      homeButtonTextEn: "HOME",
+      homeButtonSize: "15px",
+      homeButtonWeight: "font-extrabold",
+      homeButtonTracking: "tracking-[0.3em]",
+      homeButtonColor: null,
+      homeButtonAnimation: "breath",
+    };
 
-  // Merge: Use DB branding if exists, otherwise defaults.
-  // If DB branding exists but some fields are null/empty, we might want to fallback too,
-  // but usually partial branding is valid. Here we mainly handle the "no branding record" case.
-  if (!company.branding) {
-    return defaultBranding;
+    if (!company.branding) {
+      return defaultBranding;
+    }
+
+    return {
+      ...company.branding,
+      logoText: company.branding.logoText || company.name.charAt(0).toUpperCase(),
+      systemName: company.branding.systemName || company.name,
+    };
+  } catch (error) {
+    console.warn("[Branding] Failed to fetch company branding by slug, using defaults:", error);
+    return null;
   }
-
-  // If branding exists, ensures fallbacks for critical text fields if they happens to be empty strings
-  return {
-    ...company.branding,
-    logoText: company.branding.logoText || company.name.charAt(0).toUpperCase(),
-    systemName: company.branding.systemName || company.name,
-  };
 }
 
 export async function updateCompanyBranding(

@@ -40,10 +40,15 @@ export default async function LoginPage({
   const isRtl = lang === "ar";
 
   // جلب إعدادات الشركة من الدومين
-  const headersList = await headers();
-  const host = headersList.get("host") || "";
-  const subdomain = extractSubdomain(host);
-  const branding = subdomain ? await getCompanyBrandingBySlug(subdomain) : null;
+  let branding = null;
+  try {
+    const headersList = await headers();
+    const host = headersList.get("host") || "";
+    const subdomain = extractSubdomain(host);
+    branding = subdomain ? await getCompanyBrandingBySlug(subdomain) : null;
+  } catch (_) {
+    branding = null;
+  }
 
   // القيم الافتراضية أو من الإعدادات
   const brandConfig = {

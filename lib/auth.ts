@@ -35,7 +35,12 @@ export const getSession = cache(async function getSession() {
   if (!token) return null;
 
   // 2. Verify Session against DB (Kill Switch enforcement)
-  const session = await verifySession(token);
+  let session = null;
+  try {
+    session = await verifySession(token);
+  } catch {
+    return null;
+  }
   if (!session) return null;
 
   const user = session.user;
@@ -95,23 +100,35 @@ export async function getCurrentRole(): Promise<RoleType | null> {
 }
 
 export const getCurrentUser = cache(async function getCurrentUser() {
-  const session = await getSession();
-  if (!session) return null;
+  try {
+    const session = await getSession();
+    if (!session) return null;
 
-  // Ensure we return a consistent shape with a valid companyId
-  return {
-    id: session.userId,
-    username: session.user.username,
-    name: session.user.name,
-    role: session.role,
-    email: session.user.email,
-    companyId: session.companyId, // This is the resolvedCompanyId from getSession
-    company: session.companyId
-      ? await prisma.company.findUnique({
+    let company = null;
+    if (session.companyId) {
+      try {
+        company = await prisma.company.findUnique({
           where: { id: session.companyId },
-        })
-      : null,
-  };
+        });
+      } catch {
+        company = null;
+      }
+    }
+
+    // Ensure we return a consistent shape with a valid companyId
+    return {
+      id: session.userId,
+      username: session.user.username,
+      name: session.user.name,
+      role: session.role,
+      email: session.user.email,
+      companyId: session.companyId,
+      company,
+    };
+  } catch (err) {
+    console.warn("[AUTH] getCurrentUser failed safely:", err);
+    return null;
+  }
 });
 
 export async function requireRole(allowedRoles: RoleType[]) {

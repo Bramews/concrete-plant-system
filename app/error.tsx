@@ -99,26 +99,37 @@ export default function Error({
           </p>
         </div>
 
-        <button
-          onClick={handleRetry}
-          disabled={retrying}
-          className="group relative px-10 py-4 mt-6 overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-sans w-full max-w-[250px]"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-indigo-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-          <span className="relative flex items-center justify-center gap-3 text-sm font-bold text-white w-full">
-            {retrying ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                {isRtl ? "استعادة..." : "Restoring..."}
-              </>
-            ) : (
-              <>
-                <Icons.RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-                {isRtl ? "أعد المحاولة" : "Try Again"}
-              </>
-            )}
-          </span>
-        </button>
+        <div className="flex flex-col gap-2 w-full max-w-[250px] items-center">
+          <button
+            onClick={handleRetry}
+            disabled={retrying}
+            className="group relative px-10 py-4 mt-6 overflow-hidden rounded-xl bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-red-500/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed font-sans w-full"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-indigo-500/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            <span className="relative flex items-center justify-center gap-3 text-sm font-bold text-white w-full">
+              {retrying ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  {isRtl ? "استعادة..." : "Restoring..."}
+                </>
+              ) : (
+                <>
+                  <Icons.RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+                  {isRtl ? "أعد المحاولة" : "Try Again"}
+                </>
+              )}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = "/login";
+            }}
+            className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors py-2"
+          >
+            {isRtl ? "تسجيل الدخول إلى النظام ⬅" : "Go to Login Page ➡"}
+          </button>
+        </div>
 
         {!retrying && error.digest && (
           <p className="mt-4 text-sm font-bold text-slate-500 font-mono tracking-widest">
