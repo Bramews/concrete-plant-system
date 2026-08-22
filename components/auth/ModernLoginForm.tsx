@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { login } from "@/app/actions/auth";
+import { authenticateUserAction } from "@/app/actions/auth";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 interface LoginFormProps {
   callbackUrl?: string;
@@ -18,7 +17,6 @@ export function ModernLoginForm({
   isRtl,
   loginButtonText,
 }: LoginFormProps) {
-  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(initialError || null);
 
@@ -29,18 +27,16 @@ export function ModernLoginForm({
 
     startTransition(async () => {
       try {
-        await login(formData);
-      } catch (err: unknown) {
-        // In Next.js, redirect() throws an internal NEXT_REDIRECT error which is caught by Next.js router
-        const errObj = err as { message?: string; digest?: string };
-        if (
-          errObj?.message === "NEXT_REDIRECT" ||
-          errObj?.digest?.startsWith("NEXT_REDIRECT")
-        ) {
-          // Normal redirect - let Next.js navigate
-          return;
+        const res = await authenticateUserAction(formData);
+        if (res.success && res.redirectUrl) {
+          window.location.href = res.redirectUrl;
+        } else {
+          setError(
+            res.error || "بيانات الدخول غير صحيحة، يرجى المحاولة مجدداً.",
+          );
         }
-        setError("بيانات الدخول غير صحيحة، يرجى المحاولة مجدداً.");
+      } catch {
+        setError("حدث خطأ في الاتصال، يرجى المحاولة مجدداً.");
       }
     });
   }

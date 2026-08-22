@@ -38,6 +38,166 @@ function canCreateUser(creatorRole: string, targetRole: string): boolean {
   return canCreateUserWithRole(creatorRole, targetRole);
 }
 
+export async function authenticateUserAction(formData: FormData): Promise<{
+  success: boolean;
+  redirectUrl?: string;
+  error?: string;
+}> {
+  const username = formData.get("username") as string;
+  const password = formData.get("password") as string;
+  const callbackUrl = (formData.get("callbackUrl") as string) || null;
+  const remember = formData.get("remember") === "on";
+
+  try {
+    const rawInput = (username || "").trim();
+    const cleanInput = rawInput.toLowerCase();
+
+    const orConditions: Array<Record<string, unknown>> = [
+      { username: rawInput },
+      { username: cleanInput },
+      { email: rawInput },
+      { email: cleanInput },
+    ];
+
+    if (rawInput.includes("@")) {
+      const parts = rawInput.split("@");
+      if (parts.length === 2) {
+        const [p1, p2] = parts;
+        orConditions.push(
+          { username: `${p1}@${p2}` },
+          { username: `${p1.toLowerCase()}@${p2.toLowerCase()}` },
+          { username: `${p1}@${p2.toLowerCase()}` },
+          { username: `${p2}@${p1}` },
+          { username: `${p2.toLowerCase()}@${p1.toLowerCase()}` },
+          { username: `${p2}@${p1.toLowerCase()}` },
+        );
+      }
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: orConditions,
+      },
+      include: {
+        company: true,
+        memberships: {
+          include: { role: true },
+        },
+      },
+    });
+
+    if (!user) {
+      return { success: false, error: "بيانات الدخول غير صحيحة" };
+    }
+
+    const passwordMatches = await verifyPassword(password, user.password);
+    if (!passwordMatches) {
+      return { success: false, error: "بيانات الدخول غير صحيحة" };
+    }
+
+    if (user.status === "DISABLED") {
+      return { success: false, error: "الحساب معطل، يرجى مراجعة الدعم" };
+    }
+
+    if (user.company) {
+      if (user.company.status === "SUSPENDED") {
+        return { success: false, error: "الشركة موقوفة مؤقتاً" };
+      }
+      if (user.company.status === "LOCKED") {
+        return { success: false, error: "النظام مقفل من قبل الإدارة" };
+      }
+    }
+
+    // Determine Role
+    const rawRoles = user.memberships.map(
+      (m: { role: { name: string } }) => m.role.name,
+    );
+    const roles = rawRoles.map((r: string) => normalizeRole(r));
+
+    let activeRole = "OPERATOR";
+    if (roles.includes("SYSTEM_OWNER")) activeRole = "SYSTEM_OWNER";
+    else if (roles.includes("COMPANY_ADMIN")) activeRole = "COMPANY_ADMIN";
+    else if (roles.includes("DEPARTMENT_MANAGER"))
+      activeRole = "DEPARTMENT_MANAGER";
+    else if (roles.includes("MANAGER")) activeRole = "MANAGER";
+    else if (roles.includes("LAB_TECH")) activeRole = "LAB_TECH";
+    else if (roles.includes("SALES")) activeRole = "SALES";
+    else if (roles.includes("ACCOUNTANT")) activeRole = "ACCOUNTANT";
+    else if (roles.includes("SAFETY")) activeRole = "SAFETY";
+    else if (roles.includes("GUARD")) activeRole = "GUARD";
+    else if (roles.includes("OPERATOR")) activeRole = "OPERATOR";
+    else if (roles.length > 0) activeRole = roles[0];
+
+    // Check system owner global bypass
+    const systemOwner = await prisma.systemOwner
+      .findFirst({
+        where: { email: user.email },
+      })
+      .catch(() => null);
+
+    if (systemOwner) {
+      activeRole = "SYSTEM_OWNER";
+    }
+
+    const maxAge = remember ? 30 * 24 * 3600 : 7 * 24 * 3600;
+
+    const { token } = await createSession(user.id, user.companyId ?? undefined);
+
+    const cookieStore = await cookies();
+    cookieStore.set(SESSION_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: maxAge,
+    });
+
+    const jwtPayload = {
+      userId: user.id,
+      role: activeRole,
+      companyId: user.companyId ?? null,
+    };
+    const accessToken = await signJWT(jwtPayload, maxAge);
+
+    cookieStore.set("auth_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: maxAge,
+    });
+
+    // Determine target URL
+    let targetUrl = "/system/dashboard";
+    if (callbackUrl && callbackUrl.startsWith("/")) {
+      targetUrl = callbackUrl;
+    } else if (activeRole === "SYSTEM_OWNER") {
+      targetUrl = "/admin";
+    } else if (
+      activeRole === "MANAGER" ||
+      activeRole === "COMPANY_ADMIN" ||
+      activeRole === "DEPARTMENT_MANAGER"
+    ) {
+      targetUrl = "/system/manager/dashboard";
+    } else if (activeRole === "LAB_TECH" || activeRole === "LAB_ENGINEER") {
+      targetUrl = "/system/lab/mix-designs";
+    } else if (activeRole === "OPERATOR" || activeRole === "GUARD") {
+      targetUrl = "/system/operator";
+    } else if (activeRole === "SALES") {
+      targetUrl = "/system/sales";
+    } else if (activeRole === "ACCOUNTANT") {
+      targetUrl = "/system/accountant";
+    } else if (activeRole === "SAFETY") {
+      targetUrl = "/system/safety";
+    }
+
+    return { success: true, redirectUrl: targetUrl };
+  } catch (err: unknown) {
+    console.error("[authenticateUserAction] Error:", err);
+    return { success: false, error: "حدث خطأ غير متوقع أثناء تسجيل الدخول" };
+  }
+}
+
 export async function login(formData: FormData) {
   const username = formData.get("username") as string;
 
@@ -75,7 +235,7 @@ export async function login(formData: FormData) {
     const rawInput = (username || "").trim();
     const cleanInput = rawInput.toLowerCase();
 
-    const orConditions: any[] = [
+    const orConditions: Array<Record<string, unknown>> = [
       { username: rawInput },
       { username: cleanInput },
       { email: rawInput },
