@@ -6,30 +6,34 @@ import { tenancyExtension } from "./prisma/tenancy";
 import fs from "fs";
 import path from "path";
 
-// Initialize SQLite DB in writable /tmp directory on Vercel Serverless
-if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_VERSION) {
-  try {
-    const tmpDbPath = "/tmp/dev.db";
-    if (!fs.existsSync(tmpDbPath)) {
-      const candidates = [
-        path.join(process.cwd(), "prisma", "dev.db"),
-        path.join(process.cwd(), "dev.db"),
-      ];
-      for (const candidate of candidates) {
-        if (fs.existsSync(candidate)) {
-          fs.copyFileSync(candidate, tmpDbPath);
-          break;
+function ensureServerlessDb() {
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_VERSION) {
+    try {
+      const tmpDbPath = "/tmp/dev.db";
+      if (!fs.existsSync(tmpDbPath)) {
+        const candidates = [
+          path.join(process.cwd(), "prisma", "dev.db"),
+          path.join(process.cwd(), "dev.db"),
+        ];
+        for (const candidate of candidates) {
+          if (fs.existsSync(candidate)) {
+            fs.copyFileSync(candidate, tmpDbPath);
+            break;
+          }
         }
       }
+      process.env.DATABASE_URL = "file:/tmp/dev.db";
+    } catch (e) {
+      console.error("[Prisma] Failed to prepare /tmp/dev.db on serverless:", e);
     }
-    process.env.DATABASE_URL = "file:/tmp/dev.db";
-  } catch (e) {
-    console.error("[Prisma] Failed to prepare /tmp/dev.db on serverless:", e);
   }
 }
 
+ensureServerlessDb();
+
 // Professional Soft Delete Protection
 const prismaClientSingleton = () => {
+  ensureServerlessDb();
   const client = new PrismaClient({
     datasources: process.env.DATABASE_URL
       ? {
