@@ -28,7 +28,7 @@ interface Backup {
   encrypted: boolean | null;
 }
 
-import type { Dictionary } from "@/lib/dictionary";
+import type { DictionaryType } from "@/lib/dictionary";
 
 interface TestReport {
   type?: string;
@@ -40,7 +40,7 @@ interface TestReport {
 }
 
 interface DisasterRecoveryCenterProps {
-  dict: Dictionary;
+  dict: DictionaryType;
   backups: Backup[];
 }
 

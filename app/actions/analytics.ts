@@ -56,7 +56,9 @@ export async function getPerformanceAnalytics() {
         (sum, comp) => sum + comp.quantity * b.quantity,
         0,
       );
-    } catch (e) {}
+    } catch (e) {
+      console.error("[التحليلات] خطأ في حساب بيانات الهدر للدُفعة:", e);
+    }
     return {
       id: b.id,
       date: b.createdAt,

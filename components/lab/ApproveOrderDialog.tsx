@@ -342,7 +342,9 @@ export default function ApproveOrderDialog({ order }: { order: any }) {
       await processLabDecision(order.id, "APPROVE", details, mixData);
       try {
         localStorage.removeItem(`moisture_adj_${order.id}`);
-      } catch (e) {}
+      } catch (e) {
+        console.error("[المختبر] تعذر مسح بيانات تعديل الرطوبة المحفوظة محلياً:", e);
+      }
       setIsOpen(false);
       router.refresh();
       toast.success("تم اعتماد الخلطة وإرسالها للمعمل بنجاح");
@@ -364,7 +366,9 @@ export default function ApproveOrderDialog({ order }: { order: any }) {
       await processLabDecision(order.id, "REJECT", details);
       try {
         localStorage.removeItem(`moisture_adj_${order.id}`);
-      } catch (e) {}
+      } catch (e) {
+        console.error("[المختبر] تعذر مسح بيانات تعديل الرطوبة المحفوظة محلياً عند الرفض:", e);
+      }
       setIsOpen(false);
       router.refresh();
       toast.success("تم رفض الطلب بنجاح");

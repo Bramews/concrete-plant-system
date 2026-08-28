@@ -4,7 +4,7 @@ import React, { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { KPICard } from "./KPICard";
 import { Icons } from "@/components/ui/Icons";
-import { Dictionary } from "@/lib/dictionary";
+import { DictionaryType } from "@/lib/dictionary";
 import { toast } from "sonner";
 import {
   toggleSystemLock,
@@ -40,7 +40,7 @@ interface DashboardProps {
     mode?: string;
     [key: string]: unknown;
   };
-  dict: Dictionary;
+  dict: DictionaryType;
   lang?: string;
 }
 

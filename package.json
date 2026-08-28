@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "check": "npm run lint && next build && npx prettier --check .",
     "prepare": "husky || true",
-    "fix-rbac": "tsx fix-rbac-complete.ts",
+    "fix-rbac": "tsx _archived_scripts/fix-rbac-complete.ts",
     "backup": "node scripts/security-backup.mjs",
     "watch-backup": "node scripts/backup-watcher.mjs"
   },

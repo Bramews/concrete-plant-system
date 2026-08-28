@@ -10,7 +10,7 @@ import {
   AreaChart,
   Area,
 } from "recharts";
-import { Dictionary } from "@/lib/dictionary";
+import { DictionaryType } from "@/lib/dictionary";
 
 const data = [
   { name: "Sat", strength: 28, target: 30 },
@@ -23,7 +23,7 @@ const data = [
 ];
 
 interface LabDashboardProps {
-  dict: Dictionary["en"]["lab"];
+  dict: DictionaryType["lab"];
   stats: {
     mixCount: number;
     pendingCubes: number;

@@ -10,8 +10,9 @@ export async function translateError(
 ): Promise<string> {
   try {
     const dict = await getServerDictionary();
-    if (dict?.api_errors && dict.api_errors[key]) {
-      return dict.api_errors[key];
+    const apiErrors = dict?.api_errors as Record<string, string> | undefined;
+    if (apiErrors && apiErrors[key]) {
+      return apiErrors[key];
     }
   } catch {
     // If dictionary fails (e.g. no cookies), ignore and return the fallback

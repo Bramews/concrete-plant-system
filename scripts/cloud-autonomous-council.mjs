@@ -1,28 +1,53 @@
 import fs from "fs";
 import path from "path";
 
-console.log("🏛️ [AI-Council-Cloud-Worker] Starting Autonomous Background Session...");
+console.log("[AI-Council] بدء دورة الفحص السحابي...");
 
 const now = new Date();
-const timeStr = now.toISOString();
-
-// Create reports directory if not exists
 const reportsDir = path.join(process.cwd(), "docs", "council-reports");
 if (!fs.existsSync(reportsDir)) {
   fs.mkdirSync(reportsDir, { recursive: true });
 }
 
-// Generate an autonomous audit log
-const reportFile = path.join(reportsDir, `autonomous_audit_${Date.now()}.md`);
-const reportContent = `# 🏛️ تقرير الفحص والتطوير السحابي التلقائي
-- **وقت التشغيل السحابي:** ${timeStr}
-- **حالة السيرفر:** سحابي (GitHub Actions Autonomous Agent)
-- **فحص الثبات:** 100% ناجح
-- **ملاحظات الخبراء الـ 52:**
-  1. تم فحص منظومة الجلسات وتأكيد حمايتها الذاتية (Signed JWT Session).
-  2. تم فحص نماذج البيانات وقاعدة البيانات SQLite ومزامنتها.
-  3. تم التحقق من سلامة البناء (Build Integrity).
+// فحوصات حقيقية
+const checks = [];
+
+// 1. فحص وجود ملفات التكوين الأساسية
+const requiredFiles = ["package.json", "prisma/schema.prisma", "next.config.ts", "tsconfig.json"];
+for (const f of requiredFiles) {
+  const exists = fs.existsSync(path.join(process.cwd(), f));
+  checks.push({ check: `وجود ${f}`, passed: exists });
+}
+
+// 2. فحص عدم وجود ملفات قمامة في الجذر
+const rootFiles = fs.readdirSync(process.cwd()).filter(f => {
+  const fullPath = path.join(process.cwd(), f);
+  if (!fs.existsSync(fullPath)) return false;
+  const stat = fs.statSync(fullPath);
+  return stat.isFile() && /^(check_|fix_|debug_|verify_|dump_|repair_)/.test(f);
+});
+checks.push({ check: "نظافة جذر المشروع", passed: rootFiles.length === 0, details: rootFiles.length > 0 ? `وُجدت ${rootFiles.length} ملفات قمامة` : "" });
+
+// 3. فحص .gitignore
+const gitignore = fs.readFileSync(path.join(process.cwd(), ".gitignore"), "utf-8");
+checks.push({ check: ".env محمي في .gitignore", passed: gitignore.includes(".env") });
+
+const passedCount = checks.filter(c => c.passed).length;
+const totalCount = checks.length;
+
+const reportContent = `# تقرير الفحص السحابي التلقائي
+- **التاريخ:** ${now.toISOString()}
+- **النتيجة:** ${passedCount}/${totalCount} فحص ناجح
+
+## تفاصيل الفحوصات
+${checks.map(c => `- ${c.passed ? "✅" : "❌"} ${c.check}${c.details ? ` (${c.details})` : ""}`).join("\n")}
 `;
 
+const reportFile = path.join(reportsDir, `audit_${now.toISOString().slice(0,10)}.md`);
 fs.writeFileSync(reportFile, reportContent, "utf-8");
-console.log(`✅ [AI-Council-Cloud-Worker] Generated autonomous report: ${reportFile}`);
+console.log(`[AI-Council] تقرير الفحص: ${passedCount}/${totalCount} ناجح`);
+
+if (passedCount < totalCount) {
+  console.error("[AI-Council] ⚠️ بعض الفحوصات فشلت!");
+  process.exit(1);
+}

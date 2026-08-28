@@ -19,11 +19,15 @@ export async function panicLockdown(): Promise<{
     if (process.platform === "win32") {
       try {
         execSync("taskkill /f /im cloudflared.exe");
-      } catch (e) {}
+      } catch (e) {
+        console.error("[الإغلاق الأمني] لم يتم العثور على عملية cloudflared قيد التشغيل على Windows:", e);
+      }
     } else {
       try {
         execSync("killall cloudflared");
-      } catch (e) {}
+      } catch (e) {
+        console.error("[الإغلاق الأمني] لم يتم العثور على عملية cloudflared قيد التشغيل على Linux/Mac:", e);
+      }
     }
 
     // 2. Set system_lockdown setting to "true"

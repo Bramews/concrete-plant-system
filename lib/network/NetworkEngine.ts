@@ -157,7 +157,9 @@ export class NetworkEngine {
     this.activeRequests.forEach((controller) => {
       try {
         controller.abort("USER_ABORT");
-      } catch (e) {}
+      } catch (e) {
+        console.error("[محرك الشبكة] تعذر إلغاء الطلب الشبكي النشط:", e);
+      }
     });
     this.activeRequests.clear();
   }

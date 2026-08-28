@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Dictionary } from "@/lib/dictionary";
+import type { DictionaryType } from "@/lib/dictionary";
 
 interface StorageConfig {
   path?: string;
@@ -44,7 +44,7 @@ interface TestResult {
 }
 
 interface StorageProviderSettingsProps {
-  dict: Dictionary;
+  dict: DictionaryType;
   destinations: unknown[];
 }
 

@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db?connection_limit=1&socket_timeout=10000&busy_timeout=10000"
+  url      = "file:./dev.db?connection_limit=10&socket_timeout=30000&busy_timeout=30000"
 }
 
 model AuditLog {
@@ -143,6 +143,8 @@ model Company {
   departments           Department[]
   domains               Domain[]
   equipment             Equipment[]
+  financialPeriods      FinancialPeriod[]
+  financialAuditTrails  FinancialAuditTrail[]
   inventoryTransactions InventoryTransaction[]
   invites               Invite[]
   invoices              Invoice[]
@@ -1617,4 +1619,44 @@ model PlcSetting {
   updatedAt        DateTime @updatedAt
   company          Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
 }
+
+model FinancialPeriod {
+  id          Int       @id @default(autoincrement())
+  companyId   Int
+  periodKey   String    // e.g. "2026-08"
+  startDate   DateTime
+  endDate     DateTime
+  status      String    @default("OPEN") // "OPEN" | "CLOSED"
+  closedAt    DateTime?
+  closedById  Int?
+  closedByName String?
+  reason      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, periodKey])
+  @@index([companyId, status])
+}
+
+model FinancialAuditTrail {
+  id            Int      @id @default(autoincrement())
+  companyId     Int
+  userId        Int?
+  username      String
+  action        String   // "INVOICE_EDIT", "INVOICE_CANCEL", "VOUCHER_CANCEL", "EXPENSE_DELETE", "PERIOD_LOCK", etc.
+  entityType    String   // "Invoice", "Expense", "LedgerEntry", "Payroll", "FinancialPeriod"
+  entityId      String
+  oldSnapshot   String?
+  newSnapshot   String?
+  reason        String
+  ipAddress     String?
+  checksum      String?
+  timestamp     DateTime @default(now())
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, timestamp])
+  @@index([entityType, entityId])
+}
+
 

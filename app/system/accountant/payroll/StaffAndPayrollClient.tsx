@@ -11,6 +11,7 @@ import {
   recordSalaryPayment,
 } from "@/app/actions/payroll-staff";
 import { toast } from "sonner";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 
 const DEFAULT_STAFF_DEPARTMENTS = [
   "خدمات عامة ونظافة",
@@ -80,6 +81,11 @@ export function StaffAndPayrollClient({
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [viewingDocsStaff, setViewingDocsStaff] = useState<StaffMember | null>(null);
   const [payoutStaff, setPayoutStaff] = useState<StaffMember | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; staffId: string | null; staffName: string }>({
+    open: false,
+    staffId: null,
+    staffName: "",
+  });
 
   // Departments List
   const allDepartments = React.useMemo(() => {
@@ -278,7 +284,12 @@ export function StaffAndPayrollClient({
   };
 
   const handleDeleteStaff = (staffId: string, staffName: string) => {
-    if (!window.confirm(`هل أنت متأكد من حذف الموظف (${staffName}) من سجل الكادر؟`)) return;
+    setDeleteConfirm({ open: true, staffId, staffName });
+  };
+
+  const executeDeleteStaff = () => {
+    if (!deleteConfirm.staffId) return;
+    const staffId = deleteConfirm.staffId;
 
     startTransition(async () => {
       try {
@@ -286,12 +297,14 @@ export function StaffAndPayrollClient({
         if (res.success) {
           toast.success("تم حذف الموظف بنجاح");
           setStaffList((prev) => prev.filter((s) => s.id !== staffId));
+          setDeleteConfirm({ open: false, staffId: null, staffName: "" });
         }
       } catch {
         toast.error("فشل حذف الموظف");
       }
     });
   };
+
 
   const handleExecuteSalaryPayout = () => {
     if (!payoutStaff || payoutAmount <= 0) {
@@ -1080,6 +1093,20 @@ export function StaffAndPayrollClient({
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog for Delete Staff */}
+      <ConfirmationDialog
+        isOpen={deleteConfirm.open}
+        onClose={() => setDeleteConfirm({ open: false, staffId: null, staffName: "" })}
+        onConfirm={executeDeleteStaff}
+        title="تأكيد حذف الموظف"
+        description={`هل أنت متأكد من حذف الموظف (${deleteConfirm.staffName}) من سجل الكادر؟`}
+        confirmText="حذف الموظف"
+        cancelText="إلغاء"
+        variant="danger"
+        isPending={isPending}
+      />
     </div>
   );
 }
+

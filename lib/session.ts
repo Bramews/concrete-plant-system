@@ -102,18 +102,20 @@ export async function verifySession(token: string): Promise<{
 } | null> {
   if (!token) return null;
 
-  let jwtPayload: {
+  interface SessionJwtPayload {
     sessionId?: string;
     userId?: number;
     companyId?: number | null;
     impersonatorSystemOwnerId?: number | null;
     exp?: number;
-  } | null = null;
+  }
+
+  let jwtPayload: SessionJwtPayload | null = null;
 
   try {
     const secretKey = getJwtSecret();
     const { payload } = await jwtVerify(token, secretKey);
-    jwtPayload = payload as typeof jwtPayload;
+    jwtPayload = payload as unknown as SessionJwtPayload;
   } catch {
     // Not a valid JWT or expired, fallback to DB tokenHash check for older tokens
   }

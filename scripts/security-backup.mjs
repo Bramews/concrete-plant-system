@@ -86,14 +86,6 @@ async function run() {
     });
     console.log(`✅ System Image created: ${zipPath}`);
 
-    // 4. Security: Set Read-Only and Restricted Permissions
-    console.log("🔒 Securing Backup Files (Setting Read-Only)...");
-    execSync(`attrib +R "${dbDest}"`, { shell: true });
-    execSync(`attrib +R "${zipPath}"`, { shell: true });
-
-    // Optional: Restrict permissions to System/Admins only (example)
-    // execSync(`icacls "${BACKUP_DIR}" /inheritance:r /grant:r Administrators:(OI)(CI)F /grant:r SYSTEM:(OI)(CI)F`, { shell: true });
-
     console.log("\n✨ Dual Backup Completed Successfully!");
     console.log(`📁 Location: ${BACKUP_DIR}`);
   } catch (error) {

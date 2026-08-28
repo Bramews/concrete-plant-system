@@ -46,6 +46,7 @@
     "middleware.old.ts",
     "middleware.ts.bak",
     "staged_version.tsx",
-    ".map-cache"
+    ".map-cache",
+    "_archived_scripts"
   ]
 }

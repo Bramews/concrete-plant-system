@@ -8,14 +8,14 @@ import {
 import { useRouter } from "next/navigation";
 import { Icons } from "@/components/ui/Icons";
 import { toast } from "sonner";
-import { Dictionary } from "@/lib/dictionary";
+import { DictionaryType } from "@/lib/dictionary";
 
 export function LandingPageForm({
   startConfig,
   dict,
 }: {
   startConfig: LandingPageConfig;
-  dict: Dictionary["landing"];
+  dict: DictionaryType["settings"]["landing"];
 }) {
   const [config, setConfig] = useState<LandingPageConfig>(startConfig);
   const [isPending, startTransition] = useTransition();

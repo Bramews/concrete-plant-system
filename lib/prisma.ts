@@ -51,12 +51,14 @@ const prismaClientSingleton = () => {
 };
 
 declare global {
-  var prismaGlobal: undefined | ReturnType<typeof prismaClientSingleton>;
+  var prismaExtendedGlobal: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 
 // Global Prisma Client with Soft Delete
-export const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
+export const prisma =
+  globalThis.prismaExtendedGlobal ?? prismaClientSingleton();
 
 export default prisma;
 
-if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = prisma;
+if (process.env.NODE_ENV !== "production")
+  globalThis.prismaExtendedGlobal = prisma;

@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-import type { Dictionary } from "@/lib/dictionary";
+import type { DictionaryType } from "@/lib/dictionary";
 
 interface BackupRecord {
   id: number;
@@ -38,7 +38,7 @@ interface BackupRecord {
 }
 
 interface ManualBackupWizardProps {
-  dict: Dictionary;
+  dict: DictionaryType;
 }
 
 type BackupType =

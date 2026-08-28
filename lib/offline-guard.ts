@@ -123,7 +123,9 @@ export function useOfflineGuard(): OfflineGuardState {
     startMonotonicRef.current = null;
     try {
       localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {}
+    } catch (e) {
+      console.error("[حارس الاتصال] تعذر حذف مفتاح التخزين المؤقت لحالة الاتصال:", e);
+    }
   }, []);
 
   // Handle Offline transition

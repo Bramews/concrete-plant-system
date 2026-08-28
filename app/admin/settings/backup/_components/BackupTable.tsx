@@ -47,10 +47,10 @@ interface Backup {
   integrityHash: string | null;
 }
 
-import type { Dictionary } from "@/lib/dictionary";
+import type { DictionaryType } from "@/lib/dictionary";
 
 interface BackupTableProps {
-  dict: Dictionary;
+  dict: DictionaryType;
   backups: Backup[];
 }
 

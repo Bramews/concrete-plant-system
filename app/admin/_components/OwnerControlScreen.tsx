@@ -9,7 +9,7 @@ import { broadcastSystemMessage } from "@/app/actions/admin-sovereignty";
 import { toast } from "sonner";
 
 // ... imports
-import { Dictionary } from "@/lib/dictionary";
+import { DictionaryType } from "@/lib/dictionary";
 
 interface OwnerControlScreenProps {
   data: {
@@ -31,7 +31,7 @@ interface OwnerControlScreenProps {
     }>;
     [key: string]: unknown;
   };
-  dict: Dictionary;
+  dict: DictionaryType;
 }
 
 export function OwnerControlScreen({ data, dict }: OwnerControlScreenProps) {

@@ -49,7 +49,9 @@ export default async function OrderDetails(props: {
 
   const order = res.order!;
   const progress = Math.min((order.actualQuantity / order.volume) * 100, 100);
-  const statusLabel = dict.orders?.status?.[order.status] || order.status;
+  const statusLabel =
+    (dict.orders?.status as Record<string, string>)?.[order.status] ||
+    order.status;
 
   return (
     <div className="space-y-8 animate-fade-in" dir="rtl">

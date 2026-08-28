@@ -77,9 +77,12 @@ scripts/vosk-model*
 .map-cache/
 scratch/
 tmp/
-tmp_extract_correct/
-screenshots/
-*.log
-*.bak
+tmp_*/
+.tmp*/
+backups/*.zip
 tsc_errors.log
 eslint_output.txt
+
+# Archive & Vault
+_archived_scripts/
+.ai_vault/

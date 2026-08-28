@@ -1,9 +1,0 @@
-@echo off
-echo Cleaning root directory...
-attrib -r -s -h check_* debug_* verify_* print_* log_* trace_* write_* test_* purge_* DEEP_PURGE.ps1 FORCE_PURGE.bat DUMP_SCRIPT.js f.name find.sql final_cleanup.js final_root_cleanup.js nuclear_purge.js SUPER_CLEAN.js audit_and_purge.js {
-del /f /q check_* debug_* verify_* print_* log_* trace_* write_* test_* purge_* DEEP_PURGE.ps1 FORCE_PURGE.bat DUMP_SCRIPT.js f.name find.sql final_cleanup.js final_root_cleanup.js nuclear_purge.js SUPER_CLEAN.js audit_and_purge.js {
-echo Installing Prisma dependencies...
-npm install @prisma/adapter-better-sqlite3@latest better-sqlite3@latest --save-exact
-echo Generating Prisma client...
-npx prisma generate
-echo DONE!

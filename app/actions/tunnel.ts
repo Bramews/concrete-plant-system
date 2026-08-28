@@ -70,7 +70,9 @@ function findActiveTunnelUrlFromLogs(): { url: string; time: number } | null {
             if (match) {
               allMatches.push({ url: match[0], time: stats.mtime.getTime() });
             }
-          } catch (e) {}
+          } catch (e) {
+            console.error("[النفق] خطأ في قراءة ملف سجل النفق:", e);
+          }
         }
       }
     }
@@ -452,12 +454,14 @@ export async function stopTunnel(): Promise<TunnelActionResult> {
       try {
         execSync("taskkill /f /im cloudflared.exe");
       } catch (e) {
-        // May fail if process already stopped
+        console.error("[النفق] لم يتم العثور على عملية cloudflared لإيقافها على Windows:", e);
       }
     } else {
       try {
         execSync("killall cloudflared");
-      } catch (e) {}
+      } catch (e) {
+        console.error("[النفق] لم يتم العثور على عملية cloudflared لإيقافها على Linux/Mac:", e);
+      }
     }
     globalProcessMap.process = null;
     await Promise.all([

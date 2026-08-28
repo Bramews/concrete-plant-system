@@ -37,23 +37,10 @@ const globalCouncilState: CouncilSystemState = {
   activeCycleId: null,
   currentTaskAr: "جاهز لبدء دورة التحسين التلقائية الشاملة",
   nextTaskAr: "فحص وتحديث واجهات المختبر والتشغيل والمحاسبة",
-  completedCyclesCount: 42,
+  completedCyclesCount: 0,
   lastBuildStatus: "PASS",
   driftCheckStatus: "ZERO_DRIFT_ENFORCED",
-  recentLogs: [
-    {
-      id: "log-init-01",
-      timestamp: new Date().toLocaleTimeString("ar-EG"),
-      stageAr: "تأسيس هيئة الخبراء الـ 52",
-      status: "SUCCESS",
-      screenTargetAr: "كافة أنظمة المنصة",
-      expertsInvolvedCount: 52,
-      consensusSummaryAr:
-        "تم اعتماد مصفوفة التخصصات النفسية والهندسية والبصرية بنجاح وبدون أي تكلفة إضافية.",
-      gitCommitHash: "c4f81a9",
-      rollbackAvailable: true,
-    },
-  ],
+  recentLogs: [],
   telegramConnected: false,
   cloudTunnelUrl: null,
 };

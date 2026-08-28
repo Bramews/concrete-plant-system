@@ -897,7 +897,9 @@ export function NetworkClient({
                               displayRestrictions.push("الخريطة");
                             if (parsed.showHistory)
                               displayRestrictions.push("سجل الشحنات");
-                          } catch (e) {}
+                          } catch (e) {
+                            console.error("[الشبكة] خطأ في قراءة بيانات ملاحظات الرابط:", e);
+                          }
                         } else {
                           // Backward compatibility
                           displayRestrictions.push("الخريطة", "سجل الشحنات");

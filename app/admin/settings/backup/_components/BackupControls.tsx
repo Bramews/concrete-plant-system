@@ -9,10 +9,10 @@ import {
 import { Database, Camera, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import type { Dictionary } from "@/lib/dictionary";
+import type { DictionaryType } from "@/lib/dictionary";
 
 interface BackupControlsProps {
-  dict: Dictionary;
+  dict: DictionaryType;
   autoSettings: {
     enabled: boolean;
     frequency: string;

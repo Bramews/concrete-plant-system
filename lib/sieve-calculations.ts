@@ -163,11 +163,12 @@ export function exportSieveAnalysisToPDF({
         20,
         finalY,
       );
-    } catch (e) {}
+    } catch (e) {
+      console.error("[حسابات المناخل] تعذر تحديد موضع كتابة معامل النعومة في الـ PDF:", e);
+    }
 
     doc.save(`Sieve_${analysisData.labNo || Date.now()}.pdf`);
   } catch (error) {
-    console.error("PDF Export failed:", error);
-    alert("حدث خطأ أثناء تصدير PDF");
+    console.error("[حسابات المناخل] فشل تصدير تقرير المناخل إلى PDF:", error);
   }
 }

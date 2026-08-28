@@ -4,10 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/ui/Icons";
-import { Dictionary } from "@/lib/dictionary";
+import { DictionaryType } from "@/lib/dictionary";
 
 interface LabNavProps {
-  dict: Dictionary["lab"]["tabs"];
+  dict: DictionaryType["lab"]["tabs"];
 }
 
 export function LabNav({ dict }: LabNavProps) {

@@ -126,7 +126,9 @@ export function VoiceAssistant() {
     if (scriptProcessorRef.current) {
       try {
         scriptProcessorRef.current.disconnect();
-      } catch (e) {}
+      } catch (e) {
+        console.error("[المساعد الصوتي] تعذر فصل معالج الصوت:", e);
+      }
       scriptProcessorRef.current = null;
     }
     if (streamRef.current) {
@@ -286,7 +288,9 @@ export function VoiceAssistant() {
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
-      } catch (e) {}
+      } catch (e) {
+        console.error("[المساعد الصوتي] تعذر إيقاف التعرف على الصوت:", e);
+      }
     }
     setIsListening(false);
     setIsProcessing(false);
@@ -453,7 +457,9 @@ export function VoiceAssistant() {
       if (scriptProcessorRef.current) {
         try {
           scriptProcessorRef.current.disconnect();
-        } catch (e) {}
+        } catch (e) {
+          console.error("[المساعد الصوتي] تعذر فصل معالج الصوت عند إيقاف الاستماع:", e);
+        }
         scriptProcessorRef.current = null;
       }
 

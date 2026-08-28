@@ -39,7 +39,7 @@ interface Backup {
   integrityHash: string | null;
 }
 
-import type { Dictionary } from "@/lib/dictionary";
+import { DictionaryType } from "@/lib/dictionary";
 
 interface LogEntry {
   id: number;
@@ -49,7 +49,7 @@ interface LogEntry {
 }
 
 interface BackupManagementClientProps {
-  dict: Dictionary;
+  dict: DictionaryType;
   backups: Backup[];
   autoSettings: {
     enabled: boolean;

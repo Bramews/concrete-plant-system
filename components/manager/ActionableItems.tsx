@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface ActionableItemsProps {
   initialItems: AttentionItemStrict[];
-  dict: Record<string, string>;
+  dict: any;
 }
 
 export function ActionableItems({ initialItems, dict }: ActionableItemsProps) {

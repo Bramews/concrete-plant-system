@@ -103,7 +103,9 @@ export default async function RootLayout({
                     var cleanSearch = window.location.search.replace(/[?&]chunk-retry=true/, '').replace(/^&/, '?');
                     var newUrl = window.location.pathname + cleanSearch + window.location.hash;
                     window.history.replaceState({}, '', newUrl);
-                  } catch (e) {}
+                  } catch (e) {
+                    console.warn('[تحديث الرابط] تعذر تعديل مسار الصفحة:', e);
+                  }
                 }
 
                 function reloadOnChunkError(isChunkError) {

@@ -75,7 +75,7 @@ export function AggregateClient({
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold opacity-60">
-                  {d.material_status || "Stock"}
+                  {d.sidebar?.material_status || "Stock"}
                 </p>
                 <p className="font-mono font-black text-sm">
                   {mat.stock} {mat.unit}

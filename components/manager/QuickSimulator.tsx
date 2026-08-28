@@ -5,7 +5,7 @@ import { runSimulation } from "@/app/actions/manager";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface QuickSimulatorProps {
-  dict: Record<string, string>;
+  dict: any;
 }
 
 export function QuickSimulator({ dict }: QuickSimulatorProps) {

@@ -74,7 +74,8 @@ export default async function PortalOrdersPage() {
               100,
             );
             const statusLabel =
-              dict.orders?.status?.[order.status] || order.status;
+              (dict.orders?.status as Record<string, string>)?.[order.status] ||
+              order.status;
             const dateStr = new Date(order.date).toLocaleDateString("ar-EG");
 
             return (

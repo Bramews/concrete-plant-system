@@ -5,7 +5,7 @@ import { useState } from "react";
 import { DictionaryType } from "@/lib/dictionary";
 
 export function NotificationsMaster({ dict }: { dict: DictionaryType }) {
-  const t = dict?.admin?.tower ?? dict?.tower ?? {};
+  const t = dict.admin.tower;
   const [policies] = useState([
     {
       id: "crit",

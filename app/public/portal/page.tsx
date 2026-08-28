@@ -40,7 +40,9 @@ export default async function PortalPage({ searchParams }: PageProps) {
       notesText = parsed.notes || "";
       showMap = parsed.showMap !== false;
       showHistory = parsed.showHistory !== false;
-    } catch (e) {}
+    } catch (e) {
+      console.error("[البوابة العامة] خطأ في فك تشفير إعدادات الرابط:", e);
+    }
   } else {
     notesText = guestLink.notes || "";
   }
