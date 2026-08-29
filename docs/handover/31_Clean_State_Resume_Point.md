@@ -7,6 +7,7 @@
 ---
 
 ## 1. ما تم إنجازه بنسبة 100%:
+
 1. **تنظيف الجذر وحذف/أرشفة الفوضى (Stages 1 & 2):**
    - تم نقل أكثر من 158 ملف سكربت عشوائي واختباري وملفات `.bat` و `.txt` إلى الأرشيف المنعزل `_archived_scripts/`.
    - تم الإبقاء فقط على 6 سكربتات تشغيلية في مجلد `scripts/`.
@@ -23,20 +24,19 @@
    - مطابقة تامة بين مفاتيح الإنجليزية والعربية في `lib/dictionary.base.ts`.
    - تم فحصها بسكربت مقارنة المفاتيح وإرجاع `SUCCESS: en and ar dictionary keys are 100% identical!`.
 6. **بناء TypeScript الصارم (Strict TypeCheck):**
+
    - تفعيل `typescript.ignoreBuildErrors: false` في `next.config.ts`.
    - حل جميع أخطاء الأنواع التي ظهرت تباعاً أثناء الـ build.
+
+7. **أرشفة الملفات التنفيذية:**
+   - تم نقل `cloudflared.exe` من الجذر إلى `_archived_scripts/` ليبقى الجذر نظيفاً وخالياً من أي ملفات تنفيذية.
+8. **بناء الإنتاج الصارم والناجح 100%:**
+   - تم تشغيل `npm run build` بنجاح كامل بـ 0 أخطاء (44/44 صفحة جاهزة).
+   - تم رفع التغييرات إلى المستودع (`origin/main`).
 
 ---
 
 ## 2. الإجراء المباشر التالي عند كلمة "اكمل":
-1. التحقق من اكتمال بناء الإنتاج النهائي:
-   ```powershell
-   $env:NODE_OPTIONS="--max-old-space-size=6144"; npm run build
-   ```
-2. تثبيت التغييرات النظيفة عبر Git:
-   ```bash
-   git add -A
-   git commit -m "chore: supreme project cleanup — complete junk purge, empty catch fixes, dictionary parity, strict build pass"
-   git push origin main
-   ```
-3. تسليم تقرير الإغلاق الهندسي النهائي للمستخدم.
+
+1. ⚠️ **أولوية أولى:** تذكير المستخدم بتطبيق وتدوير المفاتيح السرية (Resend, JWT, Gemini, Telegram) في `.env.local`.
+2. الاستماع لتوجيهات المالك للبدء في الميزات الجديدة أو تطويرات النظام.
