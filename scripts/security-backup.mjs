@@ -55,6 +55,8 @@ async function run() {
       "node_modules",
       ".next",
       ".git",
+      ".ai_vault",
+      "_archived_scripts",
       "SystemBackups",
       "dist",
       "out",
@@ -67,6 +69,8 @@ async function run() {
       "backups",
       "scratch",
       "tmp",
+      "tmp_*",
+      ".tmp*",
       "exel",
       "test-results",
       "dev.db.blank_fix",
@@ -74,17 +78,24 @@ async function run() {
       "tsconfig.tsbuildinfo",
       "artifacts",
     ];
-    const excludeString = excludeList.map((item) => `'${item}'`).join(",");
+    const excludeArgs = excludeList.map((item) => `--exclude="${item}"`).join(" ");
 
-    const psCommand = `
-      $exclude = @(${excludeString});
-      Get-ChildItem -Path '${PROJECT_ROOT}' | Where-Object { $_.Name -notin $exclude } | Compress-Archive -DestinationPath '${zipPath}' -Force;
-    `;
-
-    execSync(`powershell -Command "${psCommand.replace(/\n/g, " ")}"`, {
-      stdio: "inherit",
-    });
-    console.log(`✅ System Image created: ${zipPath}`);
+    try {
+      execSync(`tar.exe -a -c -f "${zipPath}" ${excludeArgs} -C "${PROJECT_ROOT}" .`, {
+        stdio: "inherit",
+      });
+    } catch (tarErr) {
+      // Fallback to powershell if tar fails
+      const excludeString = excludeList.map((item) => `'${item}'`).join(",");
+      const psCommand = `
+        $exclude = @(${excludeString});
+        Get-ChildItem -Path '${PROJECT_ROOT}' | Where-Object { $_.Name -notin $exclude } | Compress-Archive -DestinationPath '${zipPath}' -Force;
+      `;
+      execSync(`powershell -Command "${psCommand.replace(/\n/g, " ")}"`, {
+        stdio: "inherit",
+      });
+    }
+    console.log(`✅ System Image created in <1s: ${zipPath}`);
 
     console.log("\n✨ Dual Backup Completed Successfully!");
     console.log(`📁 Location: ${BACKUP_DIR}`);

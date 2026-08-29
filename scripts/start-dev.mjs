@@ -22,15 +22,25 @@ const backupProcess = spawn("node", ["scripts/security-backup.mjs"], {
   cwd: PROJECT_ROOT,
 });
 
+// 3. تشغيل بوت التيليغرام التفاعلي المباشر
+console.log("🤖 بدء تشغيل بوت التيليغرام التفاعلي (@Mobdeaa_bot)...");
+const telegramProcess = spawn("node", ["scripts/telegram-bot-service.mjs"], {
+  stdio: "inherit",
+  shell: true,
+  cwd: PROJECT_ROOT,
+});
+
 // التعامل مع إيقاف العملية (Ctrl + C)
 process.on("SIGINT", () => {
   nextProcess.kill("SIGINT");
   backupProcess.kill("SIGINT");
+  telegramProcess.kill("SIGINT");
   process.exit();
 });
 process.on("SIGTERM", () => {
   nextProcess.kill("SIGTERM");
   backupProcess.kill("SIGTERM");
+  telegramProcess.kill("SIGTERM");
   process.exit();
 });
 
