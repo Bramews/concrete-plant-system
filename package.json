@@ -14,7 +14,8 @@
     "fix-rbac": "tsx fix-rbac-complete.ts",
     "backup": "node scripts/security-backup.mjs",
     "watch-backup": "node scripts/backup-watcher.mjs",
-    "watch-sync": "node scripts/git-sync-watcher.mjs"
+    "watch-sync": "node scripts/git-sync-watcher.mjs",
+    "deploy:launchers": "node scripts/deploy-desktop-launchers.mjs"
   },
   "lint-staged": {
     "*.{js,ts,tsx,css,md}": "prettier --write",
