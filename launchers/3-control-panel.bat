@@ -72,8 +72,10 @@ goto MENU
 
 :RUN_BACKUP
 cls
-echo 🛡️ جاري أخذ نسخة احتياطية محلية متكاملة...
+echo 🛡️ جاري أخذ نسخة احتياطية محلية متكاملة وصورة للمشروع...
+set FULL_IMAGE=true
 node scripts/security-backup.mjs
+set FULL_IMAGE=false
 echo.
 echo ✅ اكتملت النسخة الاحتياطية بنجاح!
 pause
