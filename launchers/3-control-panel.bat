@@ -2,7 +2,6 @@
 chcp 65001 >nul
 title لوحة تحكم وتشغيل مصنع الخرسانة الجاهزة
 color 0F
-
 cd /d "d:\concrete-plant-system"
 
 :MENU
