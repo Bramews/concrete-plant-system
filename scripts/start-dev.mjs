@@ -22,16 +22,27 @@ const syncProcess = spawn("node", ["scripts/git-sync-watcher.mjs"], {
   cwd: PROJECT_ROOT,
 });
 
-// 3. تشغيل النسخ الاحتياطي بعد ثوانٍ قليلة لضمان إقلاع السيرفر بأقصى سرعة
+// 3. تشغيل النسخ الاحتياطي لقاعدة البيانات بهدوء وسرعة
 let backupProcess = null;
 const backupTimer = setTimeout(() => {
-  console.log("🛡️ بدء النسخة الاحتياطية للبيانات وصورة المشروع...");
   backupProcess = spawn("node", ["scripts/security-backup.mjs"], {
     stdio: "inherit",
     shell: true,
     cwd: PROJECT_ROOT,
   });
-}, 8000);
+}, 5000);
+
+// 4. التجهيز والتسخين المسبق لصفحات الدخول ولوحة التحكم لتفتح فوراً وبدون أي انتظار
+setTimeout(async () => {
+  try {
+    console.log("⚡ جاري التجهيز والتسخين المسبق لصفحات الدخول ولوحة التحكم...");
+    await Promise.all([
+      fetch("http://localhost:3000/login").catch(() => {}),
+      fetch("http://localhost:3000/system/manager/dashboard").catch(() => {}),
+    ]);
+    console.log("✨ اكتمل التجهيز المسبق: النظام جاهز للاستجابة اللحظية الفورية!");
+  } catch (_) {}
+}, 7000);
 
 // التعامل مع إيقاف العملية (Ctrl + C)
 process.on("SIGINT", () => {
