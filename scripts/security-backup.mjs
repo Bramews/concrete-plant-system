@@ -45,48 +45,50 @@ async function run() {
     fs.copyFileSync(dbPath, dbDest);
     console.log(`✅ Database backed up to: ${dbDest}`);
 
-    // 3. System Image Backup (Codebase Snapshot)
-    console.log("🖼️ Creating System Image Snapshot (Codebase)...");
-    const zipPath = path.join(BACKUP_DIR, "system_image_snapshot.zip");
+    // 3. System Image Backup (Codebase Snapshot) - Only when explicitly requested
+    if (process.env.FULL_IMAGE === "true") {
+      console.log("🖼️ Creating Full System Image Snapshot (Codebase ZIP)...");
+      const zipPath = path.join(BACKUP_DIR, "system_image_snapshot.zip");
 
-    // Using PowerShell Compress-Archive for native Windows zipping without extra dependencies
-    // We exclude node_modules, .next, and large artifacts
-    const excludeList = [
-      "node_modules",
-      ".next",
-      ".git",
-      "SystemBackups",
-      "dist",
-      "out",
-      "dev.db",
-      "dev.db-journal",
-      "dev.db-wal",
-      "dev.db-shm",
-      "fix-user-cube.js",
-      "prisma",
-      "backups",
-      "scratch",
-      "tmp",
-      "exel",
-      "test-results",
-      "dev.db.blank_fix",
-      "dev.db.pre_restore",
-      "tsconfig.tsbuildinfo",
-      "artifacts",
-    ];
-    const excludeString = excludeList.map((item) => `'${item}'`).join(",");
+      const excludeList = [
+        "node_modules",
+        ".next",
+        ".git",
+        "SystemBackups",
+        "dist",
+        "out",
+        "dev.db",
+        "dev.db-journal",
+        "dev.db-wal",
+        "dev.db-shm",
+        "fix-user-cube.js",
+        "prisma",
+        "backups",
+        "scratch",
+        "tmp",
+        "exel",
+        "test-results",
+        "dev.db.blank_fix",
+        "dev.db.pre_restore",
+        "tsconfig.tsbuildinfo",
+        "artifacts",
+      ];
+      const excludeString = excludeList.map((item) => `'${item}'`).join(",");
 
-    const psCommand = `
-      $exclude = @(${excludeString});
-      Get-ChildItem -Path '${PROJECT_ROOT}' | Where-Object { $_.Name -notin $exclude } | Compress-Archive -DestinationPath '${zipPath}' -Force;
-    `;
+      const psCommand = `
+        $exclude = @(${excludeString});
+        Get-ChildItem -Path '${PROJECT_ROOT}' | Where-Object { $_.Name -notin $exclude } | Compress-Archive -DestinationPath '${zipPath}' -Force;
+      `;
 
-    execSync(`powershell -Command "${psCommand.replace(/\n/g, " ")}"`, {
-      stdio: "inherit",
-    });
-    console.log(`✅ System Image created: ${zipPath}`);
+      execSync(`powershell -Command "${psCommand.replace(/\n/g, " ")}"`, {
+        stdio: "inherit",
+      });
+      console.log(`✅ System Image created: ${zipPath}`);
+    } else {
+      console.log("ℹ️ تم حفظ قاعدة البيانات. الكود محفوظ ومُزامن تلقائياً وبشكل لحظي مع مستودع GitHub.");
+    }
 
-    console.log("\n✨ Dual Backup Completed Successfully!");
+    console.log("\n✨ Database Backup Completed Successfully!");
     console.log(`📁 Location: ${BACKUP_DIR}`);
   } catch (error) {
     console.error("❌ Backup Failed:", error.message);
