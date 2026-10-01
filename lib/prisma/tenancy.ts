@@ -129,6 +129,19 @@ export const tenancyExtension = Prisma.defineExtension((client) => {
             return query(args);
           }
 
+          // استعلامات المستخدم المباشرة بالمعرف الفريد (تجاوز فوري لمنع التعليق الدائري أثناء فحص الجلسة)
+          const whereObj = args?.where as Record<string, unknown> | undefined;
+          const hasDirectUserIdentifier =
+            model === "User" &&
+            whereObj &&
+            (whereObj.id !== undefined ||
+              whereObj.email !== undefined ||
+              whereObj.username !== undefined);
+
+          if (hasDirectUserIdentifier) {
+            return query(args);
+          }
+
           // جلب الجلسة الحالية
           const { getSession } = await import("../auth");
           let session = null;
