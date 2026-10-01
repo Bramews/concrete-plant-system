@@ -8,8 +8,8 @@ echo    🔄 السيرفر المحلي + النسخ الاحتياطي + ال�
 echo ================================================================
 echo.
 cd /d "d:\concrete-plant-system"
-start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 3; Start-Process 'http://localhost:3000/login'"
-node scripts/start-app.mjs
+start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 7; Start-Process 'http://localhost:3000/login'"
+node scripts/start-dev.mjs
 echo.
 echo ⚠️ تم إيقاف السيرفر.
 pause
