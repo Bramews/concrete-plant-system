@@ -72,9 +72,9 @@ async function verifyWithChrome() {
   await page.waitForTimeout(1000);
   console.log("✅ العودة لصفحة الدخول جاهزة.");
 
-  // --- Step 4: Log in as Lab (cube@demo-plant) ---
-  console.log("\n[4/4] تسجيل الدخول لنظام المختبر (cube@demo-plant)...");
-  await page.fill("#username", "cube@demo-plant");
+  // --- Step 4: Log in as Lab (LAB@demo-plant) ---
+  console.log("\n[4/4] تسجيل الدخول لنظام المختبر (LAB@demo-plant)...");
+  await page.fill("#username", "LAB@demo-plant");
   await page.fill("#password", "123");
 
   const tLab0 = Date.now();
