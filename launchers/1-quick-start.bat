@@ -1,15 +1,14 @@
 @echo off
-chcp 65001 >nul
-title مصنع الخرسانة - التشغيل السريع المباشر
+title Concrete Plant - Quick Start (Turbopack)
 color 0A
 echo ================================================================
-echo    🚀 جاري تشغيل مصنع الخرسانة الجاهزة (وضع سريع مباشر)
-echo    🔄 السيرفر المحلي + النسخ الاحتياطي + المزامنة اللحظية مع GitHub
+echo    [CONCRETE PLANT SYSTEM - QUICK START MODE]
+echo    Local Turbopack Server + Auto Live Sync + DB Protection
 echo ================================================================
 echo.
 cd /d "d:\concrete-plant-system"
 start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 7; Start-Process 'http://localhost:3000/login'"
 node scripts/start-dev.mjs
 echo.
-echo ⚠️ تم إيقاف السيرفر.
+echo [INFO] Server stopped.
 pause

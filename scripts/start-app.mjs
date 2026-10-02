@@ -7,21 +7,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 console.log("================================================================");
-console.log("   🚀 بدء تشغيل نظام مصنع الخرسانة الجاهزة (الوضع فائق السرعة)");
-console.log("   ⚡ المحرك التنفيذي المباشر + المزامنة اللحظية مع GitHub");
+console.log("   [CONCRETE PLANT SYSTEM] Starting Ultra-Fast Production Mode...");
+console.log("   Production Server + Automated Live GitHub Sync");
 console.log("================================================================");
 console.log("");
 
-// 1. التحقق من وجود الحزمة الجاهزة
+// 1. Verify build bundle exists
 const nextBuildDir = path.join(PROJECT_ROOT, ".next");
 if (!fs.existsSync(nextBuildDir)) {
-  console.log("📦 جاري بناء النظام لأول مرة لضمان أقصى سرعة...");
+  console.log("[BUILD] Initializing build bundle for maximum performance...");
   const { execSync } = await import("child_process");
   execSync("npm run build", { stdio: "inherit", cwd: PROJECT_ROOT });
 }
 
-// 2. تشغيل سيرفر Next.js الفوري الجاهز
-console.log("🚀 تشغيل سيرفر النظام الجاهز فائق السرعة...");
+// 2. Start Next.js production server
+console.log("[START] Launching production server...");
 const serverProcess = spawn("npx", ["next", "start"], {
   stdio: "inherit",
   shell: true,
@@ -29,15 +29,15 @@ const serverProcess = spawn("npx", ["next", "start"], {
   env: { ...process.env, NODE_OPTIONS: "--max-old-space-size=4096" },
 });
 
-// 3. تشغيل مراقب المزامنة اللحظية مع GitHub
-console.log("☁️ تشغيل مراقب المزامنة اللحظية مع GitHub...");
+// 3. Start Live GitHub Sync Watcher
+console.log("[SYNC] Starting GitHub live sync watcher...");
 const syncProcess = spawn("node", ["scripts/git-sync-watcher.mjs"], {
   stdio: "inherit",
   shell: true,
   cwd: PROJECT_ROOT,
 });
 
-// 4. أخذ نسخة احتياطية سريعة للبيانات
+// 4. Initial database backup
 const backupProcess = spawn("node", ["scripts/security-backup.mjs"], {
   stdio: "inherit",
   shell: true,

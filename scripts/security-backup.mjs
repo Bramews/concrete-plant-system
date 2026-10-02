@@ -85,7 +85,7 @@ async function run() {
       });
       console.log(`✅ System Image created: ${zipPath}`);
     } else {
-      console.log("ℹ️ تم حفظ قاعدة البيانات. الكود محفوظ ومُزامن تلقائياً وبشكل لحظي مع مستودع GitHub.");
+      console.log("[INFO] Database backed up. Codebase is tracked and synced via Git.");
     }
 
     console.log("\n✨ Database Backup Completed Successfully!");

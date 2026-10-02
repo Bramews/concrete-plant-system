@@ -1,25 +1,24 @@
 @echo off
-chcp 65001 >nul
-title لوحة تحكم وتشغيل مصنع الخرسانة الجاهزة
+title Concrete Plant - Control Panel
 color 0F
 cd /d "d:\concrete-plant-system"
 
 :MENU
 cls
 echo ================================================================
-echo           🏗️ لوحة تشغيل وتحكم نظام مصنع الخرسانة الجاهزة
+echo           CONCRETE PLANT SYSTEM - CONTROL PANEL
 echo ================================================================
 echo.
-echo    [1] 🚀 تشغيل السيرفر المحلي المباشر (فتح المتصفح العادي)
-echo    [2] 💻 تشغيل المصنع (كتطبيق مكتبي مستقل - بدون أشرطة)
-echo    [3] ☁️  فتح النسخة السحابية المباشرة أونلاين (Vercel)
-echo    [4] 🔄 مزامنة فورية وحفظ المشروع الآن على GitHub
-echo    [5] 🛡️  أخذ نسخة احتياطية محلية فورية للبيانات
-echo    [6] 📁 فتح مجلد المشروع الرئيسي في جهازك
-echo    [0] ❌ خروج
+echo    [1] Quick Start Local Server (Turbopack + Browser)
+echo    [2] Desktop App Mode (Turbopack + Independent Window)
+echo    [3] Open Cloud Production Version (Vercel)
+echo    [4] Instant Save and Push to GitHub (Manual Sync)
+echo    [5] Run Full Local Backup Snapshot (Database + Image)
+echo    [6] Open Project Root Directory
+echo    [0] Exit
 echo.
 echo ================================================================
-set /p choice=👉 أدخل رقم الخيار ثم اضغط Enter: 
+set /p choice=Enter choice number and press Enter: 
 
 if "%choice%"=="1" goto QUICK_START
 if "%choice%"=="2" goto APP_START
@@ -32,7 +31,7 @@ goto MENU
 
 :QUICK_START
 cls
-echo 🚀 جاري التشغيل في الوضع السريع...
+echo Starting Quick Start Mode (Turbopack)...
 start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 7; Start-Process 'http://localhost:3000/login'"
 node scripts/start-dev.mjs
 pause
@@ -40,7 +39,7 @@ goto MENU
 
 :APP_START
 cls
-echo 💻 جاري التشغيل في وضع التطبيق المستقل...
+echo Starting Desktop App Mode (Turbopack)...
 start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 7; if (Test-Path 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe') { Start-Process 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' -ArgumentList '--app=http://localhost:3000/login' } elseif (Test-Path 'C:\Program Files\Microsoft\Edge\Application\msedge.exe') { Start-Process 'C:\Program Files\Microsoft\Edge\Application\msedge.exe' -ArgumentList '--app=http://localhost:3000/login' } elseif (Test-Path 'C:\Program Files\Google\Chrome\Application\chrome.exe') { Start-Process 'C:\Program Files\Google\Chrome\Application\chrome.exe' -ArgumentList '--app=http://localhost:3000/login' } else { Start-Process 'http://localhost:3000/login' }"
 node scripts/start-dev.mjs
 pause
@@ -48,36 +47,36 @@ goto MENU
 
 :OPEN_CLOUD
 cls
-echo ☁️ جاري فتح النسخة السحابية على المتصفح...
+echo Opening cloud deployment in default browser...
 start https://concrete-plant-v2.vercel.app/login
 echo.
-echo تم فتح الرابط السحابي بنجاح.
+echo Cloud link opened successfully.
 pause
 goto MENU
 
 :SYNC_GIT
 cls
 echo ================================================================
-echo    ☁️ جاري المزامنة والحفظ الفوري مع GitHub...
+echo    Synchronizing with GitHub...
 echo ================================================================
 echo.
 git status --short
 git add -A
-git commit -m "حفظ يدوي من لوحة التحكم - %date% %time%" 2>nul
+git commit -m "chore(sync): manual sync from control panel - %date% %time%" 2>nul
 git push origin main
 echo.
-echo ✅ تم فحص وإتمام المزامنة مع GitHub بنجاح!
+echo [INFO] Sync with GitHub completed.
 pause
 goto MENU
 
 :RUN_BACKUP
 cls
-echo 🛡️ جاري أخذ نسخة احتياطية محلية متكاملة وصورة للمشروع...
+echo [BACKUP] Running comprehensive local database and system backup...
 set FULL_IMAGE=true
 node scripts/security-backup.mjs
 set FULL_IMAGE=false
 echo.
-echo ✅ اكتملت النسخة الاحتياطية بنجاح!
+echo [INFO] Backup completed successfully.
 pause
 goto MENU
 

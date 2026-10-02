@@ -188,9 +188,9 @@ export function SystemOwnerDashboard({
   return (
     <div className="h-full gradient-bg relative overflow-hidden">
       {/* Floating Orbs */}
-      <div className="orb w-96 h-96 bg-indigo-500 top-0 right-0 delay-0 animate-pulse duration-10000" />
-      <div className="orb w-80 h-80 bg-violet-500 bottom-0 left-0 delay-[5s] animate-pulse duration-10000" />
-      <div className="orb w-64 h-64 bg-cyan-500 top-1/2 left-1/2 delay-[10s] animate-pulse duration-10000" />
+      <div className="orb w-96 h-96 bg-indigo-500 top-0 right-0 animate-pulse duration-10000" style={{ animationDelay: "0s" }} />
+      <div className="orb w-80 h-80 bg-violet-500 bottom-0 left-0 animate-pulse duration-10000" style={{ animationDelay: "5s" }} />
+      <div className="orb w-64 h-64 bg-cyan-500 top-1/2 left-1/2 animate-pulse duration-10000" style={{ animationDelay: "10s" }} />
 
       {/* Content */}
       <div className="relative z-10 p-4 space-y-4 h-full">

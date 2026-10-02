@@ -1,4 +1,4 @@
-// 🔄 منظومة المزامنة اللحظية المستمرة مع GitHub (Instant Live GitHub Sync Watcher)
+// Instant Live GitHub Sync Watcher
 import { execSync, spawn } from "child_process";
 import fs from "fs";
 import path from "path";
@@ -30,72 +30,72 @@ const IGNORE_PATTERNS = [
 let isSyncing = false;
 let timeout = null;
 
-console.log("☁️ بدء تشغيل مراقب المزامنة اللحظية مع GitHub...");
-console.log(`📂 المجلدات المراقبة للمزامنة: ${WATCH_DIRS.join(", ")}`);
+console.log("[SYNC] Starting GitHub Live Sync Watcher...");
+console.log(`[SYNC] Watched directories: ${WATCH_DIRS.join(", ")}`);
 
 async function performSync() {
   if (isSyncing) return;
   isSyncing = true;
 
   const now = new Date().toISOString().replace("T", " ").substring(0, 19);
-  console.log(`\n⚡ [${now}] تم رصد تغيير في الملفات... جاري المزامنة اللحظية مع GitHub...`);
+  console.log(`\n[SYNC] [${now}] File change detected. Syncing with GitHub...`);
 
   try {
-    // 1. فحص وجود تعديلات غير محفوظة
+    // 1. Check uncommitted changes
     const statusOutput = execSync("git status --porcelain", {
       cwd: PROJECT_ROOT,
       encoding: "utf8",
     }).trim();
 
     if (!statusOutput) {
-      console.log("ℹ️ لا توجد تغييرات جديدة للمزامنة.");
+      console.log("[SYNC] No new changes to sync.");
       isSyncing = false;
       return;
     }
 
-    // 2. إضافة التغييرات المطلوبة مع استبعاد الملفات المؤقتة
+    // 2. Add changes excluding temporary files
     execSync("git add .agent/ .agents/ app/ components/ lib/ docs/ scripts/ CONSTITUTION.md RULES.md", {
       cwd: PROJECT_ROOT,
       stdio: "pipe",
     });
 
-    // فحص ما إذا كان هناك شيء staged
+    // Check staged diff
     const stagedCheck = execSync("git diff --staged --name-only", {
       cwd: PROJECT_ROOT,
       encoding: "utf8",
     }).trim();
 
     if (stagedCheck) {
-      // 3. إنشاء Commit بالبصمة الزمنية
+      // 3. Commit with timestamp
       const commitMsg = `chore(sync): automated instant live sync at ${now} [skip ci]`;
       execSync(`git commit -m "${commitMsg}"`, {
         cwd: PROJECT_ROOT,
         stdio: "pipe",
       });
-      console.log(`💾 تم حفظ التعديلات محلياً بنجاح.`);
+      console.log(`[SYNC] Local changes committed successfully.`);
 
-      // 4. الرفع الفوري إلى السحابة
-      console.log(`🚀 جاري الرفع الفوري إلى GitHub (origin/main)...`);
+      // 4. Push to remote
+      console.log(`[SYNC] Pushing to GitHub (origin/main)...`);
       execSync("git push origin main", {
         cwd: PROJECT_ROOT,
         stdio: "pipe",
         timeout: 30000,
       });
-      console.log(`✅ [${now}] تمت المزامنة والرفع إلى GitHub بنجاح تام 100%!`);
+      console.log(`[SYNC] [${now}] Sync and push to GitHub completed successfully!`);
     } else {
-      console.log("ℹ️ التغييرات المرصودة تخص ملفات مؤقتة تم تجاهلها.");
+      console.log("[SYNC] Changes were in ignored temporary files.");
     }
   } catch (err) {
-    console.error("⚠️ تنبيه أثناء المزامنة اللحظية:", err.message);
+    console.error("[SYNC] Warning during sync:", err.message);
   } finally {
     isSyncing = false;
-    console.log("👀 مراقب المزامنة اللحظية في حالة ترقب وتأهب دائم...\n");
+    console.log("[SYNC] Watcher active and listening for changes...\n");
   }
 }
 
 function debouncedSync() {
   if (timeout) clearTimeout(timeout);
-  // الانتظار 3 ثوانٍ بعد آخر تعديل لتجميع التغييرات
+  // Wait 3s after last modification
   timeout = setTimeout(performSync, 3000);
 }
 
@@ -113,4 +113,4 @@ WATCH_DIRS.forEach((dir) => {
   }
 });
 
-console.log("🛡️ مراقب المزامنة يعمل الآن: أي تعديل ستقوم به سيتم حفظه ورفعه لـ GitHub تلقائياً ولحظياً.");
+console.log("[SYNC] Live sync watcher initialized: changes will be committed and pushed automatically.");
