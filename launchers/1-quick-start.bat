@@ -1,14 +1,13 @@
 @echo off
-title Concrete Plant - Quick Start (Ultra-Fast Production Mode)
+title Concrete Plant - Quick Start (Turbopack Hot-Reload Dev Mode)
 color 0A
 echo ================================================================
-echo    [CONCRETE PLANT SYSTEM - QUICK START PRODUCTION MODE]
-echo    Instant Server + Automated Live GitHub Sync + DB Protection
+echo    [CONCRETE PLANT SYSTEM - QUICK START DEV MODE]
+echo    Turbopack Hot-Reload + Live GitHub Sync + DB Protection
 echo ================================================================
 echo.
 cd /d "d:\concrete-plant-system"
-start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 3; Start-Process 'http://localhost:3000/login'"
-node scripts/start-app.mjs
+node scripts/start-dev.mjs
 echo.
 echo [INFO] Server stopped.
 pause

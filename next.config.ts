@@ -37,15 +37,7 @@ const nextConfig: NextConfig = {
   ],
   reactStrictMode: true,
   experimental: {
-    optimizePackageImports: [
-      "lucide-react",
-      "date-fns",
-      "@prisma/client",
-      "recharts",
-    ],
-    serverActions: {
-      bodySizeLimit: "50mb",
-    },
+    optimizePackageImports: ["lucide-react", "date-fns", "recharts"],
   },
   logging: {
     fetches: {

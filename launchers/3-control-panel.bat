@@ -9,9 +9,9 @@ echo ================================================================
 echo           CONCRETE PLANT SYSTEM - CONTROL PANEL
 echo ================================================================
 echo.
-echo    [1] Quick Start App (Ultra-Fast Production Mode)
-echo    [2] Desktop App Mode (Dedicated Standalone Window)
-echo    [3] Development Server (Turbopack Hot-Reload for Coding)
+echo    [1] Quick Start App (Turbopack Hot-Reload Dev Mode)
+echo    [2] Desktop App Mode (Turbopack Dedicated Window)
+echo    [3] Ultra-Fast Production Mode (Pre-built Instant Engine)
 echo    [4] Open Cloud Production Version (Vercel)
 echo    [5] Instant Save and Push to GitHub (Manual Sync)
 echo    [6] Run Full Local Backup Snapshot (Database + Image)
@@ -21,9 +21,9 @@ echo.
 echo ================================================================
 set /p choice=Enter choice number and press Enter: 
 
-if "%choice%"=="1" goto QUICK_START
-if "%choice%"=="2" goto APP_START
-if "%choice%"=="3" goto DEV_START
+if "%choice%"=="1" goto DEV_START
+if "%choice%"=="2" goto APP_DEV_START
+if "%choice%"=="3" goto PROD_START
 if "%choice%"=="4" goto OPEN_CLOUD
 if "%choice%"=="5" goto SYNC_GIT
 if "%choice%"=="6" goto RUN_BACKUP
@@ -31,27 +31,26 @@ if "%choice%"=="7" goto OPEN_FOLDER
 if "%choice%"=="0" exit
 goto MENU
 
-:QUICK_START
+:DEV_START
+cls
+echo Starting Turbopack Hot-Reload Development Server...
+node scripts/start-dev.mjs
+pause
+goto MENU
+
+:APP_DEV_START
+cls
+echo Starting Desktop App Mode with Turbopack...
+set APP_MODE=true
+node scripts/start-dev.mjs
+pause
+goto MENU
+
+:PROD_START
 cls
 echo Starting Ultra-Fast Production Mode...
 start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 3; Start-Process 'http://localhost:3000/login'"
 node scripts/start-app.mjs
-pause
-goto MENU
-
-:APP_START
-cls
-echo Starting Desktop App Mode...
-start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 3; if (Test-Path 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe') { Start-Process 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' -ArgumentList '--app=http://localhost:3000/login' } elseif (Test-Path 'C:\Program Files\Microsoft\Edge\Application\msedge.exe') { Start-Process 'C:\Program Files\Microsoft\Edge\Application\msedge.exe' -ArgumentList '--app=http://localhost:3000/login' } elseif (Test-Path 'C:\Program Files\Google\Chrome\Application\chrome.exe') { Start-Process 'C:\Program Files\Google\Chrome\Application\chrome.exe' -ArgumentList '--app=http://localhost:3000/login' } else { Start-Process 'http://localhost:3000/login' }"
-node scripts/start-app.mjs
-pause
-goto MENU
-
-:DEV_START
-cls
-echo Starting Development Server (Turbopack Hot-Reload)...
-start "" powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 5; Start-Process 'http://localhost:3000/login'"
-node scripts/start-dev.mjs
 pause
 goto MENU
 
