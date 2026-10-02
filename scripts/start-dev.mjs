@@ -1,10 +1,20 @@
 import { spawn, exec } from "child_process";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const nextBin = path.join(PROJECT_ROOT, "node_modules", "next", "dist", "bin", "next");
+
+// Auto-clean stale production build in .next to prevent Turbopack Rust task graph panic
+const buildIdPath = path.join(PROJECT_ROOT, ".next", "BUILD_ID");
+if (fs.existsSync(buildIdPath)) {
+  console.log("[DEV] Cleaning stale production build to ensure clean Turbopack startup...");
+  try {
+    fs.rmSync(path.join(PROJECT_ROOT, ".next"), { recursive: true, force: true });
+  } catch (_) {}
+}
 
 const isAppMode = process.env.APP_MODE === "true" || process.argv.includes("--app");
 const shouldOpenBrowser = process.env.NO_BROWSER !== "true" && !process.argv.includes("--no-browser");
@@ -59,16 +69,18 @@ if (shouldOpenBrowser) {
       console.log("[DEV] Server ready! Pre-compiling login interface for instant display...");
       const start = Date.now();
       try {
-        await fetch(`${baseUrl}/login`);
+        await fetch(`${baseUrl}/login`, { signal: AbortSignal.timeout(20000) });
         console.log(`[DEV] Login interface compiled successfully in ${Date.now() - start} ms.`);
-      } catch (_) {}
+      } catch (err) {
+        console.log(`[DEV] Pre-warm note: ${err.message}`);
+      }
       console.log(`[DEV] Launching ${isAppMode ? "Desktop App window" : "browser"}...`);
       openBrowser("http://localhost:3000/login", isAppMode);
     }
   })();
 }
 
-// 4. Background Database Backup (delayed to 20s to ensure clean startup)
+// 4. Background Database Backup (delayed to 25s to ensure clean startup)
 let backupProcess = null;
 const backupTimer = setTimeout(() => {
   const backupScript = path.join(PROJECT_ROOT, "scripts", "security-backup.mjs");
@@ -76,7 +88,7 @@ const backupTimer = setTimeout(() => {
     stdio: "inherit",
     cwd: PROJECT_ROOT,
   });
-}, 20000);
+}, 25000);
 
 // Process Exit Handlers
 process.on("SIGINT", () => {
