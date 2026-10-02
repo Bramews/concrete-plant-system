@@ -7,12 +7,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 const nextBin = path.join(PROJECT_ROOT, "node_modules", "next", "dist", "bin", "next");
 
-// Auto-clean stale production build in .next to prevent Turbopack Rust task graph panic
+// Auto-clean stale production build in .next to prevent Turbopack Rust task graph panic while preserving cache
 const buildIdPath = path.join(PROJECT_ROOT, ".next", "BUILD_ID");
 if (fs.existsSync(buildIdPath)) {
-  console.log("[DEV] Cleaning stale production build to ensure clean Turbopack startup...");
+  console.log("[DEV] Preparing clean Turbopack environment...");
   try {
-    fs.rmSync(path.join(PROJECT_ROOT, ".next"), { recursive: true, force: true });
+    fs.unlinkSync(buildIdPath);
+    const serverDir = path.join(PROJECT_ROOT, ".next", "server");
+    if (fs.existsSync(serverDir)) {
+      fs.rmSync(serverDir, { recursive: true, force: true });
+    }
   } catch (_) {}
 }
 
@@ -76,19 +80,17 @@ if (shouldOpenBrowser) {
   })();
 }
 
-// 4. Optional: Background Database Backup (Disabled by default during dev for maximum speed)
-const enableBackup = process.argv.includes("--backup") || process.env.ENABLE_BACKUP === "true";
+// 4. Background Backup (2 minutes after startup: Database + Full System Image Snapshot)
 let backupProcess = null;
-let backupTimer = null;
-if (enableBackup) {
-  backupTimer = setTimeout(() => {
-    const backupScript = path.join(PROJECT_ROOT, "scripts", "security-backup.mjs");
-    backupProcess = spawn(process.execPath, [backupScript], {
-      stdio: "inherit",
-      cwd: PROJECT_ROOT,
-    });
-  }, 25000);
-}
+const backupTimer = setTimeout(() => {
+  console.log("\n[BACKUP] 2 minutes elapsed. Initiating scheduled background backup & image snapshot...");
+  const backupScript = path.join(PROJECT_ROOT, "scripts", "security-backup.mjs");
+  backupProcess = spawn(process.execPath, [backupScript], {
+    stdio: "inherit",
+    cwd: PROJECT_ROOT,
+    env: { ...process.env, FULL_IMAGE: "true" },
+  });
+}, 120000); // Exactly 2 minutes
 
 // Process Exit Handlers
 process.on("SIGINT", () => {
