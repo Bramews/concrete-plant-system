@@ -31,15 +31,19 @@ const nextProcess = spawn(process.execPath, [nextBin, "dev", "--turbo"], {
   env: { ...process.env, NODE_OPTIONS: "--max-old-space-size=4096" },
 });
 
-// 2. Launch Live GitHub Sync Watcher
-console.log("[SYNC] Starting GitHub Live Sync Watcher...");
-const syncScript = path.join(PROJECT_ROOT, "scripts", "git-sync-watcher.mjs");
-const syncProcess = spawn(process.execPath, [syncScript], {
-  stdio: "inherit",
-  cwd: PROJECT_ROOT,
-});
+// 2. Optional: Live GitHub Sync Watcher (Disabled by default to keep Turbopack 100% lightweight)
+const enableSync = process.argv.includes("--sync") || process.env.ENABLE_SYNC === "true";
+let syncProcess = null;
+if (enableSync) {
+  console.log("[SYNC] Starting GitHub Live Sync Watcher...");
+  const syncScript = path.join(PROJECT_ROOT, "scripts", "git-sync-watcher.mjs");
+  syncProcess = spawn(process.execPath, [syncScript], {
+    stdio: "inherit",
+    cwd: PROJECT_ROOT,
+  });
+}
 
-// 3. Automated Pre-warming and Browser Opening
+// 3. Automated Browser Opening
 function openBrowser(url, appMode = false) {
   if (appMode) {
     const cmd = `powershell -NoProfile -WindowStyle Hidden -Command "if (Test-Path 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe') { Start-Process 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe' -ArgumentList '--app=${url}' } elseif (Test-Path 'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe') { Start-Process 'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe' -ArgumentList '--app=${url}' } elseif (Test-Path 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe') { Start-Process 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' -ArgumentList '--app=${url}' } else { Start-Process '${url}' }"`;
@@ -66,43 +70,39 @@ if (shouldOpenBrowser) {
     }
 
     if (isReady) {
-      console.log("[DEV] Server ready! Pre-compiling login interface for instant display...");
-      const start = Date.now();
-      try {
-        await fetch(`${baseUrl}/login`, { signal: AbortSignal.timeout(20000) });
-        console.log(`[DEV] Login interface compiled successfully in ${Date.now() - start} ms.`);
-      } catch (err) {
-        console.log(`[DEV] Pre-warm note: ${err.message}`);
-      }
-      console.log(`[DEV] Launching ${isAppMode ? "Desktop App window" : "browser"}...`);
+      console.log(`[DEV] Server ready! Launching ${isAppMode ? "Desktop App window" : "browser"}...`);
       openBrowser("http://localhost:3000/login", isAppMode);
     }
   })();
 }
 
-// 4. Background Database Backup (delayed to 25s to ensure clean startup)
+// 4. Optional: Background Database Backup (Disabled by default during dev for maximum speed)
+const enableBackup = process.argv.includes("--backup") || process.env.ENABLE_BACKUP === "true";
 let backupProcess = null;
-const backupTimer = setTimeout(() => {
-  const backupScript = path.join(PROJECT_ROOT, "scripts", "security-backup.mjs");
-  backupProcess = spawn(process.execPath, [backupScript], {
-    stdio: "inherit",
-    cwd: PROJECT_ROOT,
-  });
-}, 25000);
+let backupTimer = null;
+if (enableBackup) {
+  backupTimer = setTimeout(() => {
+    const backupScript = path.join(PROJECT_ROOT, "scripts", "security-backup.mjs");
+    backupProcess = spawn(process.execPath, [backupScript], {
+      stdio: "inherit",
+      cwd: PROJECT_ROOT,
+    });
+  }, 25000);
+}
 
 // Process Exit Handlers
 process.on("SIGINT", () => {
-  clearTimeout(backupTimer);
+  if (backupTimer) clearTimeout(backupTimer);
   nextProcess.kill("SIGINT");
   if (backupProcess) backupProcess.kill("SIGINT");
-  syncProcess.kill("SIGINT");
+  if (syncProcess) syncProcess.kill("SIGINT");
   process.exit();
 });
 
 process.on("SIGTERM", () => {
-  clearTimeout(backupTimer);
+  if (backupTimer) clearTimeout(backupTimer);
   nextProcess.kill("SIGTERM");
   if (backupProcess) backupProcess.kill("SIGTERM");
-  syncProcess.kill("SIGTERM");
+  if (syncProcess) syncProcess.kill("SIGTERM");
   process.exit();
 });
