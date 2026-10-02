@@ -29,7 +29,7 @@ const TIMESTAMP = getFormattedTimestamp();
 const BACKUP_DIR = path.join(BACKUP_ROOT, TIMESTAMP);
 
 async function run() {
-  console.log(`🚀 Starting Dual Backup Mechanism [${TIMESTAMP}]...`);
+  console.log(`[BACKUP] Starting Dual Backup Mechanism [${TIMESTAMP}]...`);
 
   try {
     // 1. Create Target Directory
@@ -41,13 +41,13 @@ async function run() {
     const dbPath = path.join(PROJECT_ROOT, "prisma", "dev.db");
     const dbDest = path.join(BACKUP_DIR, "content_db_backup.db");
 
-    console.log("📦 Backing up Content (Database)...");
+    console.log("[BACKUP] Backing up Database Content...");
     fs.copyFileSync(dbPath, dbDest);
-    console.log(`✅ Database backed up to: ${dbDest}`);
+    console.log(`[BACKUP] Database backed up to: ${dbDest}`);
 
     // 3. System Image Backup (Codebase Snapshot) - Only when explicitly requested
     if (process.env.FULL_IMAGE === "true") {
-      console.log("🖼️ Creating Full System Image Snapshot (Codebase ZIP)...");
+      console.log("[BACKUP] Creating Full System Image Snapshot (Codebase ZIP)...");
       const zipPath = path.join(BACKUP_DIR, "system_image_snapshot.zip");
 
       const excludeList = [
@@ -83,15 +83,15 @@ async function run() {
       execSync(`powershell -Command "${psCommand.replace(/\n/g, " ")}"`, {
         stdio: "inherit",
       });
-      console.log(`✅ System Image created: ${zipPath}`);
+      console.log(`[BACKUP] System Image created: ${zipPath}`);
     } else {
       console.log("[INFO] Database backed up. Codebase is tracked and synced via Git.");
     }
 
-    console.log("\n✨ Database Backup Completed Successfully!");
-    console.log(`📁 Location: ${BACKUP_DIR}`);
+    console.log("\n[SUCCESS] Database Backup Completed Successfully!");
+    console.log(`[BACKUP] Location: ${BACKUP_DIR}`);
   } catch (error) {
-    console.error("❌ Backup Failed:", error.message);
+    console.error("[ERROR] Backup Failed:", error.message);
     process.exit(1);
   }
 }

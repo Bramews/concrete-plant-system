@@ -26,7 +26,7 @@ const syncProcess = spawn("node", ["scripts/git-sync-watcher.mjs"], {
   cwd: PROJECT_ROOT,
 });
 
-// 3. Database backup timer
+// 3. Database backup timer (delayed to 15s so server starts without I/O competition)
 let backupProcess = null;
 const backupTimer = setTimeout(() => {
   backupProcess = spawn("node", ["scripts/security-backup.mjs"], {
@@ -34,19 +34,7 @@ const backupTimer = setTimeout(() => {
     shell: true,
     cwd: PROJECT_ROOT,
   });
-}, 5000);
-
-// 4. Pre-warm main routes for instant snappy response
-setTimeout(async () => {
-  try {
-    console.log("[PRE-WARM] Pre-compiling routes for instant snappy response...");
-    await Promise.all([
-      fetch("http://localhost:3000/login").catch(() => {}),
-      fetch("http://localhost:3000/system/manager/dashboard").catch(() => {}),
-    ]);
-    console.log("[READY] Routes pre-compiled. System ready for instant access!");
-  } catch (_) {}
-}, 5000);
+}, 15000);
 
 // Exit handlers
 process.on("SIGINT", () => {

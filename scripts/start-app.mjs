@@ -37,22 +37,27 @@ const syncProcess = spawn("node", ["scripts/git-sync-watcher.mjs"], {
   cwd: PROJECT_ROOT,
 });
 
-// 4. Initial database backup
-const backupProcess = spawn("node", ["scripts/security-backup.mjs"], {
-  stdio: "inherit",
-  shell: true,
-  cwd: PROJECT_ROOT,
-});
+// 4. Initial database backup (delayed by 10s so server starts without I/O contention)
+let backupProcess = null;
+const backupTimer = setTimeout(() => {
+  backupProcess = spawn("node", ["scripts/security-backup.mjs"], {
+    stdio: "inherit",
+    shell: true,
+    cwd: PROJECT_ROOT,
+  });
+}, 10000);
 
 process.on("SIGINT", () => {
+  clearTimeout(backupTimer);
   serverProcess.kill("SIGINT");
   syncProcess.kill("SIGINT");
-  backupProcess.kill("SIGINT");
+  if (backupProcess) backupProcess.kill("SIGINT");
   process.exit();
 });
 process.on("SIGTERM", () => {
+  clearTimeout(backupTimer);
   serverProcess.kill("SIGTERM");
   syncProcess.kill("SIGTERM");
-  backupProcess.kill("SIGTERM");
+  if (backupProcess) backupProcess.kill("SIGTERM");
   process.exit();
 });
